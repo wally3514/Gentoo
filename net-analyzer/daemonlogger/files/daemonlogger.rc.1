@@ -1,0 +1,46 @@
+#!/sbin/runscript
+# Copyright 1999-2011 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+depend() {
+	need net.${IFACE}
+
+	if [[ ${DL_MODE} = "tap" ]] ; then
+		need net.${TAP_OFACE}
+	fi
+}
+
+start() {
+
+	if [[ ${DL_MODE} = "log" ]] ; then
+		LOG_OPTS="-l ${LOG_DIR} -M ${LOG_PCT} -r"
+
+		if [[ -n $LOG_SIZE ]] ; then
+			LOG_OPTS="${LOG_OPTS} -s ${LOG_SIZE}"
+		fi
+
+		if [[ -n $LOG_TIME ]] ; then
+			LOG_OPTS="${LOG_OPTS} -t ${LOG_TIME}"
+		fi
+
+		ebegin "Starting daemonlogger in LOG mode"
+		start-stop-daemon --start --quiet --exec /usr/bin/daemonlogger \
+			--pidfile ${PIDPATH}/${PIDFILE} -- ${LOG_OPTS} ${DL_OPTS} -P ${PIDPATH} -p ${PIDFILE} >/dev/null 2>&1
+		eend $?
+
+	elif [[ ${DL_MODE} = "tap" ]] ; then
+		ebegin "Starting daemonlogger in TAP mode"
+		start-stop-daemon --start --quiet --exec /usr/bin/daemonlogger \
+			--pidfile ${PIDPATH}/${PIDFILE} -- -o ${TAP_OFACE} ${DL_OPTS} -P ${PIDPATH} -p ${PIDFILE} >/dev/null 2>&1
+	else
+		eerror "DL_MODE not set to "log" or "tap" in /etc/conf.d/daemonlogger!"
+	fi
+}
+
+stop() {
+	ebegin "Stopping daemonlogger"
+	start-stop-daemon --stop --quiet --pidfile ${PIDPATH}/${PIDFILE}
+	eend $?
+}
+

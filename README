@@ -1,0 +1,37 @@
+This is my development repository for ebuilds I work on or maintain for various
+Snort (http://www.snort.org) related projects for the Gentoo Linux distrobution 
+(http://www.gentoo.org). The end goal of each project is to have it included in 
+the main portage tree, but many of these projects will start in the 
+Gentoo Sunrise overlay (http://overlays.gentoo.org/proj/sunrise) before being 
+added to the main tree.
+
+You are welcome to use this repository for your own local overlay, but keep in
+mind this is a development space so YMMV.
+
+- If you would like to help out with any of these ebuilds, feel free to contact 
+  me. If you have ideas or sugestions, please open an issue on this project's 
+  GitHub site. 
+
+- If you find a bug in one of the ebuilds hosted in this repository you can open 
+  an issue and I will look at it. 
+- If you find a bug in an ebuild that is in the Gentoo portage tree please open 
+  a bug at Gentoo's bugzilla site (http://bugs.gentoo.org/) and not here. 
+- If you find a bug in an ebuild hosted here and located in the Sunrise Overlay 
+  you can fix it your self (that is the point of the Sunrise Overlay) or you can 
+  send me an email and I'll look at it when I get a chance.
+
+Below is listed the current location and version of the non-development 
+versions of these ebuilds.
+
+
+Projects	Location		Version			Keywords
+----------------------------------------------------------------------------
+Snort		Gentoo Portage     	snort-2.9.0.3		(amd64 ~x86)
+DAQ         	Gentoo Portage          daq-0.5			(amd64 ~x86)
+Pulledpork	Sunrise Overlay		pulledpork-0.5  	(~amd64 ~x86)
+Hogger		Sunrise Overlay		hogger-0.2		(~amd64 ~x86)
+Daemonlogger	Sunrise Overlay		daemonlogger-1.2.1	(~amd64 ~x86)
+
+
+
+Thx for stopping by, and happy snorting!

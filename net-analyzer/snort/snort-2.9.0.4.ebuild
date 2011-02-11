@@ -89,6 +89,7 @@ src_configure() {
 		$(use_enable debug) \
 		$(use_enable debug debug-msgs) \
 		$(use_enable debug corefiles) \
+		$(use_enable !debug dlclose) \
 		$(use_enable active-response) \
 		$(use_enable normalizer) \
 		$(use_enable reload-error-restart) \
@@ -102,9 +103,9 @@ src_configure() {
 		--disable-build-dynamic-examples \
 		--disable-profile \
 		--disable-ppm-test \
-		--disable-dlclose \
 		--disable-intel-soft-cpm \
 		--disable-static-daq \
+		--disable-rzb-saac \
 		--without-oracle
 
 }

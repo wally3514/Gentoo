@@ -20,11 +20,12 @@ mind this is a development space so YMMV.
   you can fix it your self (that is the point of the Sunrise Overlay) or you can 
   send me an email and I'll look at it when I get a chance.
 
-Below is listed the current location and version of the non-development 
-versions of these ebuilds.
+Below is listed the current location of the non-development versions of the 
+ebuilds being worked on here. If you are intrested in thes packages and 
+prefer to follow the "stable" version in poratge or the Sunrise Overlay. 
 
 
-Projects	Location		Version			Keywords
+Projects	Current Location	Version			Keywords
 ----------------------------------------------------------------------------
 Snort		Gentoo Portage     	snort-2.9.0.3		(amd64 ~x86)
 DAQ         	Gentoo Portage          daq-0.5			(amd64 ~x86)

@@ -30,6 +30,7 @@ Projects	Current Location	Version			Keywords
 ----------------------------------------------------------------------------
 Snort		Gentoo Portage     	snort-2.9.0.3		(amd64 ~x86)
 DAQ         	Gentoo Portage          daq-0.5			(amd64 ~x86)
+Barnyard2	Gentoo Portage		barnyard2-1.8		(~amd64 ~x86)
 Pulledpork	Sunrise Overlay		pulledpork-0.5  	(~amd64 ~x86)
 Hogger		Sunrise Overlay		hogger-0.2		(~amd64 ~x86)
 Daemonlogger	Sunrise Overlay		daemonlogger-1.2.1	(~amd64 ~x86)

@@ -24,11 +24,10 @@ pkg_setup() {
 
 src_install () {
 	emake DESTDIR="${D}" install || die
-	dodir /etc/daemonlogger/ /var/log/daemonlogger/ /var/run/daemonlogger/ || die
+	dodir /etc/daemonlogger/ /var/log/daemonlogger/ || die
 	touch "${D}"/etc/daemonlogger/daemonlogger.bpf || die
 	fowners daemonlogger:daemonlogger /etc/daemonlogger/ \
 		/etc/daemonlogger/daemonlogger.bpf \
-		/var/run/daemonlogger/ \
 		/var/log/daemonlogger/ || die
 	dodoc AUTHORS ChangeLog README || die
 	newconfd "${FILESDIR}/daemonlogger.confd.1" daemonlogger || die

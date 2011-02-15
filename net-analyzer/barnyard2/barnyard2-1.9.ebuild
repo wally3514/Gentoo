@@ -10,13 +10,13 @@ SRC_URI="http://www.securixlive.com/download/barnyard2/${P}.tar.gz"
 SLOT="0"
 LICENSE="GPL-2"
 KEYWORDS="~amd64 ~x86"
-IUSE="static debug aruba gre mpls prelude ipv6 mysql odbc postgres"
+IUSE="static debug gre mpls mysql odbc postgres"
 
 DEPEND="virtual/libpcap
-        mysql? ( virtual/mysql )
-        postgres? ( dev-db/postgresql-server )
-        prelude? ( >=dev-libs/libprelude-0.9.0 )
-        odbc? ( dev-db/unixODBC )"
+	mysql? ( virtual/mysql )
+	postgres? ( dev-db/postgresql-server )
+	odbc? ( dev-db/unixODBC )"
+RDEPEND="${DEPEND}"
 
 src_prepare() {
 	sed -i -e "s:^#config interface:config interface:" \
@@ -30,16 +30,18 @@ src_configure() {
 		$(use_enable !static shared) \
 		$(use_enable static) \
 		$(use_enable debug) \
-		$(use_enable aruba) \
 		$(use_enable gre) \
 		$(use_enable mpls) \
-		$(use_enable prelude) \
-		$(use_enable ipv6) \
 		$(use_with mysql) \
 		$(use_with odbc) \
 		$(use_with postgres postgresql) \
-		--without-oracle \
-		--disable-bro || die
+		--disable-ipv6 \
+		--disable-prelude \
+		--disable-mysql-ssl-support \
+		--disable-aruba \
+		--without-tcl \
+		--without-oracle || die
+
 	emake || die
 }
 
@@ -51,8 +53,7 @@ src_install () {
 		/var/log/snort \
 		/var/log/snort/archive \
 		/var/log/barnyard2 || die
-	dodoc LICENSE \
-		RELEASE.NOTES \
+	dodoc RELEASE.NOTES \
 		etc/barnyard2.conf \
 		doc/README* \
 		schemas/create_* || die

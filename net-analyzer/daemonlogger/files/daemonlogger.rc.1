@@ -4,10 +4,10 @@
 # $Header: $
 
 depend() {
-	need net.${IFACE}
+	after net.${IFACE}
 
 	if [[ ${DL_MODE} = "tap" ]] ; then
-		need net.${TAP_OFACE}
+		after net.${TAP_OFACE}
 	fi
 }
 

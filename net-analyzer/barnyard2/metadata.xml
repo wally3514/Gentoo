@@ -1,4 +1,3 @@
-</pkgmetadata>
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
@@ -30,7 +29,6 @@
         <bugs-to>mailto:dev@securixlive.com</bugs-to>
     </upstream>
 	<use>
-		<flag name='aruba'>Enable Aruba support</flag>
 		<flag name='gre'>Enable GRE support</flag>
 		<flag name='mpls'>Enable support for mpls networks</flag>
 	</use>

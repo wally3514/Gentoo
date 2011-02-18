@@ -46,6 +46,9 @@ pkg_setup() {
 
 src_prepare() {
 
+	# Fix to ensure that the package builds if USE flag -dynamicplugin is used.
+	epatch "${FILESDIR}/disabledynamic.patch"
+
 	#Multilib fix for the sf_engine
 	einfo "Applying multilib fix."
 	sed -i -e 's:${exec_prefix}/lib:${exec_prefix}/'$(get_libdir)':g' \
@@ -266,7 +269,7 @@ pkg_postinst() {
 		ewarn "If you do not have a subscription to the VRT rule set and you"
 		ewarn "wish to continue using the shared object (SO) rules, you will"
 		ewarn "need to downgrade Snort. The SO rules will be made available"
-		ewarn "to registered (non-subscription) users on Jan. 11, 2011"
+		ewarn "to registered (non-subscription) users on March 12, 2011"
 		ewarn "(30 days after being released to subscription users)."
 		ewarn
 		ewarn "Please see http://www.snort.org/snort-rules/#rules for more"

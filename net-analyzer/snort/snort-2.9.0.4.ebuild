@@ -11,7 +11,7 @@ SRC_URI="http://www.snort.org/downloads/752 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="amd64 ~x86"
-IUSE="static +dynamicplugin ipv6 +zlib gre mpls targetbased +decoder-preprocessor-rules
+IUSE="static +dynamicplugin +ipv6 +zlib gre mpls targetbased +decoder-preprocessor-rules
 ppm perfprofiling linux-smp-stats inline-init-failopen prelude +threads debug
 active-response normalizer reload-error-restart react flexresp3
 aruba mysql odbc postgres selinux"

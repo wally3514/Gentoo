@@ -117,9 +117,9 @@ src_install() {
 
 	emake DESTDIR="${D}" install || die "emake failed"
 
-	dodir /var/log/snort/ \
-		/var/run/snort/ \
-		/etc/snort/rules/ \
+	dodir /var/log/snort \
+		/var/run/snort \
+		/etc/snort/rules \
 		/usr/$(get_libdir)/snort_dynamicrules \
 			|| die "Failed to create core directories"
 
@@ -153,21 +153,18 @@ src_install() {
 		preproc_rules/preprocessor.rules \
 		preproc_rules/sensitive-data.rules || die "Failed to install preproc rule files"
 
-	fowners snort:snort \
-		/var/log/snort/ \
-		/var/run/snort/ \
-		/etc/snort/ \
-		/etc/snort/* \
-		/etc/snort/preproc_rules/decoder.rules \
-		/etc/snort/preproc_rules/preprocessor.rules \
-		/etc/snort/preproc_rules/sensitive-data.rules || die "Failed to set ownership of dirs"
+	chown -R snort:snort \
+		"${D}"/var/log/snort \
+		"${D}"/var/run/snort \
+		"${D}"/etc/snort \
+		"${D}"/etc/snort/preproc_rules || die "Failed to set ownership of dirs"
 
 	newinitd "${FILESDIR}/snort.rc10" snort || die "Failed to install snort init script"
 	newconfd "${FILESDIR}/snort.confd" snort || die "Failed to install snort confd file"
 
 	# Sourcefire uses Makefiles to install docs causing Bug #297190.
 	# This removes the unwanted doc directory and rogue Makefiles. 
-	rm -rf "${D}"usr/share/doc/snort/ || die "Failed to remove SF doc directories"
+	rm -rf "${D}"usr/share/doc/snort || die "Failed to remove SF doc directories"
 	rm "${D}"usr/share/doc/"${PF}"/Makefile* || die "Failed to remove doc make files"
 
 	# Set the correct lib path for dynamicengine, dynamicpreprocessor, and dynamicdetection

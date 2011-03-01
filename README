@@ -28,7 +28,7 @@ versions can be found at:
 
 Projects	Current Location	Version			Keywords
 ----------------------------------------------------------------------------
-Snort		Gentoo Portage     	snort-2.9.0.4		(amd64 ~x86)
+Snort		Gentoo Portage     	snort-2.9.0.4-r1	(~amd64 ~x86)
 DAQ         	Gentoo Portage          daq-0.5			(amd64 ~x86)
 Barnyard2	Gentoo Portage		barnyard2-1.9		(~amd64 ~x86)
 Pulledpork	Sunrise Overlay		pulledpork-0.5  	(~amd64 ~x86)

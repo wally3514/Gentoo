@@ -1,16 +1,16 @@
 # Copyright 1999-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/net-analyzer/snort/snort-2.9.0.3.ebuild,v 1.3 2011/01/14 22:40:28 hwoarang Exp $
+# $Header: /var/cvsroot/gentoo-x86/net-analyzer/snort/snort-2.9.0.4-r1.ebuild,v 1.1 2011/03/01 07:52:53 kumba Exp $
 
 EAPI="2"
 inherit eutils autotools multilib
 
 DESCRIPTION="The de facto standard for intrusion detection/prevention"
 HOMEPAGE="http://www.snort.org/"
-SRC_URI="http://www.snort.org/downloads/752 -> ${P}.tar.gz"
+SRC_URI="http://www.snort.org/downloads/808 -> ${P}-r1.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="amd64 ~x86"
+KEYWORDS="~amd64 ~x86"
 IUSE="static +dynamicplugin +ipv6 +zlib gre mpls targetbased +decoder-preprocessor-rules
 ppm perfprofiling linux-smp-stats inline-init-failopen prelude +threads debug
 active-response normalizer reload-error-restart react flexresp3
@@ -124,15 +124,12 @@ src_install() {
 			|| die "Failed to create core directories"
 
 	# config.log and build.log are needed by Sourcefire
-	# to trouble shoot build problems and bug reports so we are 
+	# to trouble shoot build problems and bug reports so we are
 	# perserving them incase the user needs upstream support.
 	dodoc RELEASE.NOTES ChangeLog \
 		doc/* \
 		tools/u2boat/README.u2boat \
 		schemas/* || die "Failed to install snort docs"
-	docinto support
-	dodoc "${WORKDIR}/${PF}/config.log" \
-		"${T}/build.log" || die "Failed to install support files"
 
 	insinto /etc/snort
 	doins etc/attribute_table.dtd \
@@ -163,7 +160,7 @@ src_install() {
 	newconfd "${FILESDIR}/snort.confd" snort || die "Failed to install snort confd file"
 
 	# Sourcefire uses Makefiles to install docs causing Bug #297190.
-	# This removes the unwanted doc directory and rogue Makefiles. 
+	# This removes the unwanted doc directory and rogue Makefiles.
 	rm -rf "${D}"usr/share/doc/snort || die "Failed to remove SF doc directories"
 	rm "${D}"usr/share/doc/"${PF}"/Makefile* || die "Failed to remove doc make files"
 

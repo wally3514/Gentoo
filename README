@@ -34,6 +34,7 @@ Barnyard2	Gentoo Portage		barnyard2-1.9		(~amd64 ~x86)
 Pulledpork	Sunrise Overlay		pulledpork-0.5  	(~amd64 ~x86)
 Hogger		Sunrise Overlay		hogger-0.2		(~amd64 ~x86)
 Daemonlogger	Sunrise Overlay		daemonlogger-1.2.1	(~amd64 ~x86)
+OpenPFC		This repo		<in development. do not use>
 
 You can follow me on Twitter @wally3514 to find out when any of these packages 
 are updated in the main tree or in Sunrise. 

@@ -17,17 +17,16 @@ RDEPEND="dev-lang/perl
 	perl-core/Sys-Syslog
 	perl-core/Digest-MD5
 	perl-core/Archive-Tar
+	perl-core/File-Spec
 	net-analyzer/snort"
 
 src_install () {
-	dobin pulledpork.pl || die "Failed to install script pulledpork.pl"
-
+	dobin pulledpork.pl || die
 	dodoc README \
 		doc/README.* \
-		etc/*.conf || die "Failed to install docs in doc or etc"
-
+		etc/*.conf || die
 	docinto contrib
-	dodoc contrib/* || die "Failed to install docs in contrib"
+	dodoc contrib/* || die
 }
 
 pkg_postinst() {

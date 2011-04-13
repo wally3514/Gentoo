@@ -255,7 +255,6 @@ pkg_postinst() {
 	elog
 
 	if [[ $(date +%Y%m%d) < 20110507 ]]; then
-
 		ewarn
 		ewarn "Please note, you can not use ${P} with the SO rules from"
 		ewarn "previous versions of Snort!"
@@ -269,7 +268,12 @@ pkg_postinst() {
 		ewarn "Please see http://www.snort.org/snort-rules/#rules for more"
 		ewarn "details."
 		ewarn
-
 	fi
 
+	if use debug; then
+		elog "You have the 'debug' USE flag enabled. If this has been done to"
+		elog "troubleshoot an issue by producing a core dump or a back trace,"
+		elog "then you need to also ensure the FEATURES variable in make.conf"
+		elog "contains the 'nostrip' option."
+	fi
 }

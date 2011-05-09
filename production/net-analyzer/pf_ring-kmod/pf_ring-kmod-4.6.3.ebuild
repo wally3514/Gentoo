@@ -4,9 +4,9 @@
 
 EAPI=3
 
-inherit multilib linux-mod linux-info
+inherit linux-mod linux-info
 
-DESCRIPTION="A new type of network socket that dramatically improves the packet capture speed."
+DESCRIPTION="A new type of network socket that improves packet capture speed."
 HOMEPAGE="http://www.ntop.org/PF_RING.html"
 SRC_URI="http://sourceforge.net/projects/ntop/files/PF_RING/PF_RING-${PV}.tar.gz/download -> PF_RING-4.6.3.tar.gz"
 
@@ -29,21 +29,16 @@ pkg_setup() {
 
 src_install() {
 	linux-mod_src_install
-	einfo "Installing pf_ring header file"
 	insinto /usr/include/linux
 	doins linux/pf_ring.h || die
-	einfo "Installing pf_ring modprobe config file"
 	insinto /etc/modprobe.d
 	doins "${FILESDIR}"/pf_ring.conf || die
 	sed -i -e 's:DOCDIR:/usr/share/doc/'${PF}'/README.module_options:g' \
 		"${D}etc/modprobe.d/pf_ring.conf" || die
-	einfo "Installing README.module_options"
 	dodoc "${FILESDIR}"/README.module_options || die
 }
 
 pkg_postinst() {
-	linux-mod_pkg_postinst
-	echo
 	einfo "Please see /usr/share/doc/${PF}/README.module_options for configuration options."
-	echo
+	linux-mod_pkg_postinst
 }

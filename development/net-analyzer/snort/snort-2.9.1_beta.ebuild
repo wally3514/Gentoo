@@ -7,14 +7,14 @@ inherit eutils autotools multilib
 
 DESCRIPTION="The de facto standard for intrusion detection/prevention"
 HOMEPAGE="http://www.snort.org/"
-SRC_URI="http://www.snort.org/downloads/808 -> ${P}-r1.tar.gz"
+SRC_URI="http://www.snort.org/downloads/1000 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="static +dynamicplugin +ipv6 +zlib gre mpls targetbased +decoder-preprocessor-rules
 ppm perfprofiling linux-smp-stats inline-init-failopen prelude +threads debug
-active-response normalizer reload-error-restart react flexresp3
-aruba mysql odbc postgres selinux"
+active-response normalizer reload-error-restart react flexresp3 paf rzb-saac
+large-pcap aruba mysql odbc postgres selinux"
 
 DEPEND=">=net-libs/libpcap-1.0.0
 	>=net-libs/daq-0.5
@@ -28,6 +28,11 @@ DEPEND=">=net-libs/libpcap-1.0.0
 
 RDEPEND="${DEPEND}
 	selinux? ( sec-policy/selinux-snort )"
+
+#src_unpack() {
+#	unpack ${A}
+#	cd "${S}"
+#}
 
 pkg_setup() {
 
@@ -47,7 +52,7 @@ pkg_setup() {
 src_prepare() {
 
 	# Fix to ensure that the package builds if USE flag -dynamicplugin is used.
-	epatch "${FILESDIR}/disabledynamic.patch"
+	#epatch "${FILESDIR}/disabledynamic.patch"
 
 	#Multilib fix for the sf_engine
 	einfo "Applying multilib fix."
@@ -98,7 +103,10 @@ src_configure() {
 		$(use_enable reload-error-restart) \
 		$(use_enable react) \
 		$(use_enable flexresp3) \
+		$(use_enable paf) \
 		$(use_enable aruba) \
+		$(use_enable rzb-saac) \
+		$(use_enable large-pcap) \
 		$(use_with mysql) \
 		$(use_with odbc) \
 		$(use_with postgres postgresql) \
@@ -108,7 +116,6 @@ src_configure() {
 		--disable-ppm-test \
 		--disable-intel-soft-cpm \
 		--disable-static-daq \
-		--disable-rzb-saac \
 		--without-oracle
 
 }

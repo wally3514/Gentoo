@@ -13,7 +13,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="static +dynamicplugin +ipv6 +zlib gre mpls targetbased +decoder-preprocessor-rules
 ppm perfprofiling linux-smp-stats inline-init-failopen prelude +threads debug
-active-response normalizer reload-error-restart react flexresp3 paf large-pcap aruba 
+active-response normalizer reload-error-restart react flexresp3 paf aruba 
 mysql odbc postgres selinux"
 
 DEPEND=">=net-libs/libpcap-1.0.0
@@ -97,7 +97,6 @@ src_configure() {
 		$(use_enable flexresp3) \
 		$(use_enable paf) \
 		$(use_enable aruba) \
-		$(use_enable large-pcap) \
 		$(use_with mysql) \
 		$(use_with odbc) \
 		$(use_with postgres postgresql) \

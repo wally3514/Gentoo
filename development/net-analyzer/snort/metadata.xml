@@ -132,8 +132,5 @@
 			statefully scan a stream and reassemble a complete protocol data
 			unit regardless of segmentation.
 		</flag>
-		<flag name='large-pcap'>
-			Enable support for pcaps larger than 2 GB.
-		</flag>
 	</use>
 </pkgmetadata>

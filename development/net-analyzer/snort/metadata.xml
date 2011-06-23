@@ -132,11 +132,6 @@
 			statefully scan a stream and reassemble a complete protocol data
 			unit regardless of segmentation.
 		</flag>
-		<flag name='rzb-saac'>
-			Enable support for the Razorback SaaC preprocessor. This monitors 
-			SMTP and HTTP streams and extracts documents that are forwarded to 
-			a Razorback dispatcher for analysis.
-		</flag>
 		<flag name='large-pcap'>
 			Enable support for pcaps larger than 2 GB.
 		</flag>

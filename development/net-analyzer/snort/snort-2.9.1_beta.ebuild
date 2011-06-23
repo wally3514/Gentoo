@@ -13,8 +13,8 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="static +dynamicplugin +ipv6 +zlib gre mpls targetbased +decoder-preprocessor-rules
 ppm perfprofiling linux-smp-stats inline-init-failopen prelude +threads debug
-active-response normalizer reload-error-restart react flexresp3 paf rzb-saac
-large-pcap aruba mysql odbc postgres selinux"
+active-response normalizer reload-error-restart react flexresp3 paf large-pcap aruba 
+mysql odbc postgres selinux"
 
 DEPEND=">=net-libs/libpcap-1.0.0
 	>=net-libs/daq-0.5
@@ -28,11 +28,6 @@ DEPEND=">=net-libs/libpcap-1.0.0
 
 RDEPEND="${DEPEND}
 	selinux? ( sec-policy/selinux-snort )"
-
-#src_unpack() {
-#	unpack ${A}
-#	cd "${S}"
-#}
 
 pkg_setup() {
 
@@ -51,9 +46,6 @@ pkg_setup() {
 
 src_prepare() {
 
-	# Fix to ensure that the package builds if USE flag -dynamicplugin is used.
-	#epatch "${FILESDIR}/disabledynamic.patch"
-
 	#Multilib fix for the sf_engine
 	einfo "Applying multilib fix."
 	sed -i -e 's:${exec_prefix}/lib:${exec_prefix}/'$(get_libdir)':g' \
@@ -61,7 +53,7 @@ src_prepare() {
 		|| die "sed for sf_engine failed"
 
 	#Multilib fix for the curent set of dynamic-preprocessors
-	for i in ftptelnet smtp ssh dns ssl dcerpc2 sdf; do
+	for i in ftptelnet smtp ssh dns ssl dcerpc2 sdf imap pop rzb_saac sip; do
 		sed -i -e 's:${exec_prefix}/lib:${exec_prefix}/'$(get_libdir)':g' \
 			"${WORKDIR}/${P}/src/dynamic-preprocessors/$i/Makefile.am" \
 			|| die "sed for $i failed."
@@ -105,12 +97,12 @@ src_configure() {
 		$(use_enable flexresp3) \
 		$(use_enable paf) \
 		$(use_enable aruba) \
-		$(use_enable rzb-saac) \
 		$(use_enable large-pcap) \
 		$(use_with mysql) \
 		$(use_with odbc) \
 		$(use_with postgres postgresql) \
 		--enable-reload \
+		--disable-rzb-saac \
 		--disable-build-dynamic-examples \
 		--disable-profile \
 		--disable-ppm-test \

@@ -117,7 +117,7 @@ src_install() {
 
 	dodir /var/log/snort \
 		/var/run/snort \
-		/etc/snort/rules \
+		/etc/snort/default/rules \
 		/usr/$(get_libdir)/snort_dynamicrules \
 			|| die "Failed to create core directories"
 
@@ -131,7 +131,6 @@ src_install() {
 	# perserving them incase the user needs upstream support.
 	# 'die' was intentionally not added here. This should not
 	# be a show stopper if it fails.
-	dodoc "${WORKDIR}/${PF}/config.log" || die
 	if [ -f "${WORKDIR}/${PF}/config.log" ]; then
 		dodoc "${WORKDIR}/${PF}/config.log"
 	fi
@@ -139,7 +138,7 @@ src_install() {
 		dodoc "${T}/build.log"
 	fi
 
-	insinto /etc/snort
+	insinto /etc/snort/default
 	doins etc/attribute_table.dtd \
 		etc/classification.config \
 		etc/gen-msg.map \
@@ -153,7 +152,7 @@ src_install() {
 	newins etc/snort.conf snort.conf.distrib \
 		|| die "Failed to add snort.conf.distrib"
 
-	insinto /etc/snort/preproc_rules
+	insinto /etc/snort/default/preproc_rules
 	doins preproc_rules/decoder.rules \
 		preproc_rules/preprocessor.rules \
 		preproc_rules/sensitive-data.rules || die "Failed to install preproc rule files"
@@ -161,11 +160,10 @@ src_install() {
 	chown -R snort:snort \
 		"${D}"/var/log/snort \
 		"${D}"/var/run/snort \
-		"${D}"/etc/snort \
-		"${D}"/etc/snort/preproc_rules || die "Failed to set ownership of dirs"
+		"${D}"/etc/snort || die "Failed to set ownership of dirs"
 
-	newinitd "${FILESDIR}/snort.rc10" snort || die "Failed to install snort init script"
-	newconfd "${FILESDIR}/snort.confd" snort || die "Failed to install snort confd file"
+	newinitd "${FILESDIR}/snort.0.rc1" snort || die "Failed to install snort init script"
+	newconfd "${FILESDIR}/snort.confd.1" snort || die "Failed to install snort confd file"
 
 	# Sourcefire uses Makefiles to install docs causing Bug #297190.
 	# This removes the unwanted doc directory and rogue Makefiles.

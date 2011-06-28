@@ -110,6 +110,8 @@ src_install() {
 	dodir /var/log/snort \
 		/var/run/snort \
 		/etc/snort/default/rules \
+		/etc/snort/default/so_rules \
+		/etc/snort/default/preproc_rules \
 		/usr/$(get_libdir)/snort_dynamicrules \
 			|| die "Failed to create core directories"
 

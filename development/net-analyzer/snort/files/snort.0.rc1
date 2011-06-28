@@ -1,0 +1,99 @@
+#!/sbin/runscript
+# Copyright 1999-2010 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: /var/cvsroot/gentoo-x86/net-analyzer/snort/files/snort.rc10,v 1.1 2010/11/02 18:22:10 patrick Exp $
+
+opts="checkconfig reload"
+
+# Override the defauilt value of conf set by runscript
+# This allows us to use a single conf.d file
+conf="/etc/conf.d/snort" && source ${conf}
+
+depend() {
+	need net
+	after mysql
+	after postgresql
+}
+
+checkconfig() 
+{
+	local max_cpus=$[ `grep -c processor /proc/cpuinfo` - 1 ]
+	local -a a=() inst_name=() conf_name=() pcap_iface=() cpu_id=()
+	local config_id=snort${SVCNAME#*.}
+	a="config_${config_id}[@]"
+	a=( "${!a}" )
+	inst_name="${a[0]}"
+	conf_name="${a[1]}"
+	pcap_iface="${a[2]}"
+	cpu_id="${a[3]}"
+
+	if [ ! -e ${inst_conf} ] ; then
+		eerror "File /etc/snort/${inst_name}/${conf_name} not found."
+		eerror "Check your settings for config_${config_id} in /etc/conf.d/snort."
+		return 1
+	fi
+
+	if [ "${cpu_id}" != "none" ]; then 
+		if [ ${cpu_id} -gt $max_cpus ]; then
+			eerror "config_$config_id in /etc/conf.d/snort contains a processor ID"
+			eerror "that is greater than the current number of system processors."
+			return 1
+		fi
+	fi
+}
+
+start() 
+{
+	checkconfig || return 1
+	local config_id=snort${SVCNAME#*.}
+	local -a a=() inst_name=() conf_name=() cpu_id=()
+	a="config_${config_id}[@]"
+	a=( "${!a}" )
+	inst_name="${a[0]}"
+	conf_name="${a[1]}"
+	pcap_iface="${a[2]}"
+	cpu_id="${a[3]}"
+
+	ebegin "Starting Snort Instance:"
+	eindent
+		einfo "Instance = ${inst_name}"
+		einfo "Config file = /etc/snort/${inst_name}/${conf_name}"
+		if [ "${cpu_id}" != "none" ]; then
+			einfo "CPU = ${cpu_id}"
+		fi
+	eoutdent
+
+	if [ "${cpu_id}" == "none" ]; then
+		start-stop-daemon --start --quiet --exec /usr/bin/snort \
+			-- --nolock-pidfile --pid-path /var/run/snort -D -R "-${inst_name}" -c "${inst_conf}" >/dev/null 2>&1
+		eend $?
+	else
+		start-stop-daemon --start --quiet --exec /usr/bin/taskset \
+			-- -c ${cpu_id} /usr/bin/snort --nolock-pidfile --pid-path /var/run/snort -D \
+			-R "-${inst_name}" -c "${inst_conf}" >/dev/null 2>&1
+	fi
+	
+		
+}
+
+stop() {
+	ebegin "Stopping snort"
+	start-stop-daemon --stop --quiet --pidfile /var/run/snort/snort_"${pcap_iface}"-"${inst_name}"
+	# Snort needs a few seconds to fully shutdown
+	sleep 10
+	eend $?
+}
+
+reload() {
+        if [ ! -f /var/run/snort/snort_"${pcap_iface}"-"${inst_name}" ]; then
+        	eerror "Snort isn't running"
+                return 1
+        fi
+
+        checkconfig || return 1
+        ebegin "Reloading Snort"
+        start-stop-daemon --stop --oknodo --signal HUP --pidfile /var/run/snort/snort_"${pcap_iface}"-"${inst_name}"
+        eend $?
+}
+
+

@@ -11,10 +11,9 @@ SRC_URI="http://www.snort.org/downloads/1000 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="static +dynamicplugin +ipv6 +zlib gre mpls targetbased +decoder-preprocessor-rules
-ppm perfprofiling linux-smp-stats inline-init-failopen prelude +threads debug
-active-response normalizer reload-error-restart react flexresp3 paf aruba 
-mysql odbc postgres selinux"
+IUSE="static +dynamicplugin +zlib gre mpls targetbased +decoder-preprocessor-rules
+ppm perfprofiling linux-smp-stats inline-init-failopen +threads debug active-response 
+normalizer reload-error-restart react flexresp3 paf aruba mysql odbc postgres selinux"
 
 DEPEND=">=net-libs/libpcap-1.0.0
 	>=net-libs/daq-0.5
@@ -23,7 +22,6 @@ DEPEND=">=net-libs/libpcap-1.0.0
 	postgres? ( dev-db/postgresql-base )
 	mysql? ( virtual/mysql )
 	odbc? ( dev-db/unixODBC )
-	prelude? ( >=dev-libs/libprelude-0.9.0 )
 	zlib? ( sys-libs/zlib )"
 
 RDEPEND="${DEPEND}
@@ -59,12 +57,6 @@ src_prepare() {
 			|| die "sed for $i failed."
 	done
 
-	if use prelude; then
-		einfo "Applying prelude fix."
-		sed -i -e "s:AC_PROG_RANLIB:AC_PROG_LIBTOOL:" configure.in \
-			|| die "sed	for perlude failed"
-	fi
-
 	AT_M4DIR=m4 eautoreconf
 }
 
@@ -74,7 +66,6 @@ src_configure() {
 		$(use_enable !static shared) \
 		$(use_enable static) \
 		$(use_enable dynamicplugin) \
-		$(use_enable ipv6) \
 		$(use_enable zlib) \
 		$(use_enable gre) \
 		$(use_enable mpls) \
@@ -84,7 +75,6 @@ src_configure() {
 		$(use_enable perfprofiling) \
 		$(use_enable linux-smp-stats) \
 		$(use_enable inline-init-failopen) \
-		$(use_enable prelude) \
 		$(use_enable threads pthread) \
 		$(use_enable debug) \
 		$(use_enable debug debug-msgs) \
@@ -100,7 +90,9 @@ src_configure() {
 		$(use_with mysql) \
 		$(use_with odbc) \
 		$(use_with postgres postgresql) \
+		--enable-ipv6 \
 		--enable-reload \
+		--disable-prelude \
 		--disable-rzb-saac \
 		--disable-build-dynamic-examples \
 		--disable-profile \

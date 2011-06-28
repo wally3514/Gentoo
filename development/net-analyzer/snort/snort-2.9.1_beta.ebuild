@@ -118,6 +118,9 @@ src_install() {
 		tools/u2boat/README.u2boat \
 		schemas/* || die "Failed to install snort docs"
 
+	# snort.conf.orig is the original config file shipprd by Sourcefire
+	newdoc etc/snort.conf snort.conf.orig
+
 	# config.log and build.log are needed by Sourcefire
 	# to troubleshoot build problems and bug reports so we are
 	# perserving them incase the user needs upstream support.
@@ -138,12 +141,6 @@ src_install() {
 		etc/threshold.conf \
 		etc/unicode.map || die "Failed to install docs in etc"
 
-	# We use snort.conf.distrib because the config file is complicated
-	# and the one shipped with snort can change drastically between versions.
-	# Users should migrate setting by hand and not with etc-update.
-	newins etc/snort.conf snort.conf.distrib \
-		|| die "Failed to add snort.conf.distrib"
-
 	insinto /etc/snort/default/preproc_rules
 	doins preproc_rules/decoder.rules \
 		preproc_rules/preprocessor.rules \
@@ -161,61 +158,6 @@ src_install() {
 	# This removes the unwanted doc directory and rogue Makefiles.
 	rm -rf "${D}"usr/share/doc/snort || die "Failed to remove SF doc directories"
 	rm "${D}"usr/share/doc/"${PF}"/Makefile* || die "Failed to remove doc make files"
-
-	# Set the correct lib path for dynamicengine, dynamicpreprocessor, and dynamicdetection
-	sed -i -e 's:/usr/local/lib:/usr/'$(get_libdir)':g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib lib paths"
-
-	# Set the correct rule location in the config
-	sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/rules:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib rule path"
-
-	# Set the correct preprocessor/decoder rule location in the config
-	sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/preproc_rules:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib preproc rule path"
-
-	# Enable the preprocessor/decoder rules
-	sed -i -e 's:^# include $PREPROC_RULE_PATH:include $PREPROC_RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to uncomment snort.conf.distrib preproc rule path"
-
-	sed -i -e 's:^# dynamicdetection directory:dynamicdetection directory:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to uncomment snort.conf.distrib dynamicdetection directory"
-
-	# Just some clean up of trailing /'s in the config
-	sed -i -e 's:snort_dynamicpreprocessor/$:snort_dynamicpreprocessor:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to clean up snort.conf.distrib trailing slashes"
-
-	# Make it clear in the config where these are...
-	sed -i -e 's:^include classification.config:include /etc/snort/classification.config:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib classification.config path"
-
-	sed -i -e 's:^include reference.config:include /etc/snort/reference.config:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib /etc/snort/reference.config path"
-
-	# Disable all rule files by default. Users need to choose what they want enabled.
-	sed -i -e 's:^include $RULE_PATH:# include $RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to disable rules in snort.conf.distrib"
-
-	# Disable preproc rule files by default.
-	sed -i -e 's:^include $PREPROC_RULE_PATH:# include $PREPROC_RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to disable rules in snort.conf.distrib"
-
-	# Disable normalizer preprocessor config if normalizer USE flag not set.
-	if ! use normalizer; then
-		sed -i -e 's:^preprocessor normalize:#preprocessor normalize:g' \
-			"${D}etc/snort/snort.conf.distrib" \
-			|| die "Failed to disable normalizer config in snort.conf.distrib"
-	fi
 
 }
 
@@ -269,4 +211,63 @@ pkg_postinst() {
 		ewarn
 
 	fi
+}
+
+pkg_config() {
+
+	# Set the correct rule location in the config
+	sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/rules:g' \
+		"${D}etc/snort/snort.conf.gentoo" \
+		|| die "Failed to update snort.conf.gentoo rule path"
+
+	# Set the correct preprocessor/decoder rule location in the config
+	sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/preproc_rules:g' \
+		"${D}etc/snort/snort.conf.gentoo" \
+		|| die "Failed to update snort.conf.gentoo preproc rule path"
+
+	# Set the correct lib path for dynamicengine, dynamicpreprocessor, and dynamicdetection
+	sed -i -e 's:/usr/local/lib:/usr/'$(get_libdir)':g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to update snort.conf.distrib lib paths"
+
+	# Enable the preprocessor/decoder rules
+	sed -i -e 's:^# include $PREPROC_RULE_PATH:include $PREPROC_RULE_PATH:g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to uncomment snort.conf.distrib preproc rule path"
+
+	sed -i -e 's:^# dynamicdetection directory:dynamicdetection directory:g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to uncomment snort.conf.distrib dynamicdetection directory"
+
+	# Just some clean up of trailing /'s in the config
+	sed -i -e 's:snort_dynamicpreprocessor/$:snort_dynamicpreprocessor:g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to clean up snort.conf.distrib trailing slashes"
+
+	# Make it clear in the config where these are...
+	sed -i -e 's:^include classification.config:include /etc/snort/classification.config:g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to update snort.conf.distrib classification.config path"
+
+	sed -i -e 's:^include reference.config:include /etc/snort/reference.config:g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to update snort.conf.distrib /etc/snort/reference.config path"
+
+	# Disable all rule files by default. Users need to choose what they want enabled.
+	sed -i -e 's:^include $RULE_PATH:# include $RULE_PATH:g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to disable rules in snort.conf.distrib"
+
+	# Disable preproc rule files by default.
+	sed -i -e 's:^include $PREPROC_RULE_PATH:# include $PREPROC_RULE_PATH:g' \
+		"${D}etc/snort/snort.conf.distrib" \
+		|| die "Failed to disable rules in snort.conf.distrib"
+
+	# Disable normalizer preprocessor config if normalizer USE flag not set.
+	if ! use normalizer; then
+		sed -i -e 's:^preprocessor normalize:#preprocessor normalize:g' \
+			"${D}etc/snort/snort.conf.distrib" \
+			|| die "Failed to disable normalizer config in snort.conf.distrib"
+	fi
+
 }

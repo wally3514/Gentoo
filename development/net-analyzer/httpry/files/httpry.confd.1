@@ -1,0 +1,15 @@
+# Specify output format string. This is the default string.
+# See the format-string file in the docs directory for more options.
+#
+FORMAT="timestamp,source-ip,dest-ip,direction,method,host,request-uri,http-version,status-code,reason-phrase"
+#
+# Interface to listen for web traffic on
+IFACE="eth1"
+#
+# Specify the path and file name to log to
+PATH="/var/log/httpry/httpry.log"
+#
+# Specify the user for the daemon to run as
+USER="httpry"
+
+HTTPRY_OPTS="-f ${FORMAT} -i ${IFACE} -o ${PATH} -u ${USER}"

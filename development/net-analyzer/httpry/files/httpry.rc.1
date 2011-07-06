@@ -1,0 +1,22 @@
+#!/sbin/runscript
+# Copyright 1999-2011 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+depend() {
+	need net
+}
+
+start() {
+	ebegin "Starting httpry"
+	start-stop-daemon --start --quiet --exec /usr/sbin/httpry \
+		--pidfile /var/run/httpry.pid -- -d -q ${HTTPRY_OPTS} >/dev/null 2>&1
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping httpry"
+	start-stop-daemon --stop --quiet --pidfile /var/run/httpry.pid
+	eend $?
+
+}

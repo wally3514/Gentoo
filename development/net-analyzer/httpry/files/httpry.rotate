@@ -1,0 +1,10 @@
+/var/log/httpry/httpry.log {
+	compress
+	rotate 7
+	daily
+	dateext
+	create
+	postrotate
+		/etc/init.d/httpry reload
+	endscript
+}

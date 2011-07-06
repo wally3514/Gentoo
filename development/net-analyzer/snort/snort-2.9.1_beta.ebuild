@@ -109,9 +109,10 @@ src_install() {
 
 	dodir /var/log/snort \
 		/var/run/snort \
-		/etc/snort/default/rules \
-		/etc/snort/default/so_rules \
-		/etc/snort/default/preproc_rules \
+		/etc/snort \
+		/usr/share/snort/default/rules \
+		/usr/share/snort/default/so_rules \
+		/usr/share/snort/default/preproc_rules \
 		/usr/$(get_libdir)/snort_dynamicrules \
 			|| die "Failed to create core directories"
 
@@ -135,15 +136,18 @@ src_install() {
 		dodoc "${T}/build.log"
 	fi
 
-	insinto /etc/snort/default
-	doins etc/attribute_table.dtd \
+	insinto /usr/share/snort/default
+	doins etc/snort.conf \
+		etc/attribute_table.dtd \
 		etc/classification.config \
 		etc/gen-msg.map \
 		etc/reference.config \
 		etc/threshold.conf \
 		etc/unicode.map || die "Failed to install docs in etc"
 
-	insinto /etc/snort/default/preproc_rules
+	touch /usr/share/snort/default/rules/local.rules
+
+	insinto /usr/share/snort/default/preproc_rules
 	doins preproc_rules/decoder.rules \
 		preproc_rules/preprocessor.rules \
 		preproc_rules/sensitive-data.rules || die "Failed to install preproc rule files"
@@ -151,7 +155,8 @@ src_install() {
 	chown -R snort:snort \
 		"${D}"/var/log/snort \
 		"${D}"/var/run/snort \
-		"${D}"/etc/snort || die "Failed to set ownership of dirs"
+		"${D}"/etc/snort \
+		"${D}"/usr/share/snort || die "Failed to set ownership of dirs"
 
 	newinitd "${FILESDIR}/snort.0.rc1" snort || die "Failed to install snort init script"
 	newconfd "${FILESDIR}/snort.confd.1" snort || die "Failed to install snort confd file"
@@ -217,59 +222,233 @@ pkg_postinst() {
 
 pkg_config() {
 
-	# Set the correct rule location in the config
-	sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/rules:g' \
-		"${D}etc/snort/snort.conf.gentoo" \
-		|| die "Failed to update snort.conf.gentoo rule path"
+	einfo "This configuration process is designed to:"
+	einfo
+	einfo "1. Help new users install their first instance of Snort"
+	einfo "   and prform basic cleanup and configuration of the"
+	einfo "   snort.conf file."
+	einfo
+	einfo "2. Help current users install additional instance of Snort"
+	einfo "   and update critical files for existing Snort instances"
+	einfo
+	einfo "Press ENTER to continue or Ctrl+C to exit..."
+	read
+	echo
+	echo
+	echo "Do you want to create a new instance of Snort or upgrade"
+	echo "an existing instance?"
 
-	# Set the correct preprocessor/decoder rule location in the config
-	sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/preproc_rules:g' \
-		"${D}etc/snort/snort.conf.gentoo" \
-		|| die "Failed to update snort.conf.gentoo preproc rule path"
+	select c_u in "Create" "Upgrade"; do
+		case ${c_u} in
+			Create )
 
-	# Set the correct lib path for dynamicengine, dynamicpreprocessor, and dynamicdetection
-	sed -i -e 's:/usr/local/lib:/usr/'$(get_libdir)':g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib lib paths"
+			echo
+			read -p "Please enter a name for this instance (alpha/numeric and _ only): " c_name
+			echo
+			read -p "Which interface will Snort be listening on: " c_iface
+			echo
+			echo "Creating instance ${c_name} listening on ${c_iface}..."
 
-	# Enable the preprocessor/decoder rules
-	sed -i -e 's:^# include $PREPROC_RULE_PATH:include $PREPROC_RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to uncomment snort.conf.distrib preproc rule path"
+			cp -R ${ROOT}/usr/share/snort/default ${ROOT}/etc/snort/${c_name}
+			chown -R snort:snort ${ROOT}/etc/snort/${c_name}
 
-	sed -i -e 's:^# dynamicdetection directory:dynamicdetection directory:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to uncomment snort.conf.distrib dynamicdetection directory"
+			# Set the correct rule location in the config
+			sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/'${c_name}'/rules:g' \
+				"${ROOT}/etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf rule path"
 
-	# Just some clean up of trailing /'s in the config
-	sed -i -e 's:snort_dynamicpreprocessor/$:snort_dynamicpreprocessor:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to clean up snort.conf.distrib trailing slashes"
+			# Set the correct so_rule location in the config
+			sed -i -e 's:SO_RULE_PATH ../rules:SO_RULE_PATH /etc/snort/'${c_name}'/so_rules:g' \
+				"${ROOT}/etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf so_rule path"
 
-	# Make it clear in the config where these are...
-	sed -i -e 's:^include classification.config:include /etc/snort/classification.config:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib classification.config path"
+			# Set the correct preprocessor/decoder rule location in the config
+			sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/'${c_name}'/preproc_rules:g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf preproc rule path"
 
-	sed -i -e 's:^include reference.config:include /etc/snort/reference.config:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib /etc/snort/reference.config path"
+			# Set afpacket as the configured DAQ
+			sed -i -e 's/^# config daq: <type>/config daq: afpacket/g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config daq"
 
-	# Disable all rule files by default. Users need to choose what they want enabled.
-	sed -i -e 's:^include $RULE_PATH:# include $RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to disable rules in snort.conf.distrib"
+			# Set the location of the DAQ modules
+			sed -i -e 's%^# config daq_dir: <dir>%config daq_dir: /usr/'$(get_libdir)'/daq%g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config daq_dir"
 
-	# Disable preproc rule files by default.
-	sed -i -e 's:^include $PREPROC_RULE_PATH:# include $PREPROC_RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to disable rules in snort.conf.distrib"
+			# Set the DAQ mode to passive
+			sed -i -e 's%^# config daq_mode: <mode>%config daq_mode: passive%g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config daq_mode"
 
-	# Disable normalizer preprocessor config if normalizer USE flag not set.
-	if ! use normalizer; then
-		sed -i -e 's:^preprocessor normalize:#preprocessor normalize:g' \
-			"${D}etc/snort/snort.conf.distrib" \
-			|| die "Failed to disable normalizer config in snort.conf.distrib"
-	fi
+			# Set snort to run as snort:snort
+			sed -i -e 's%^# config set_gid:%config set_gid: snort%g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config set_gid"
+			sed -i -e 's%^# config set_uid:%config set_uid: snort%g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config set_uid"
 
+			# Set the default log dir
+			sed -i -e 's%^# config logdir:%config logdir: /var/log/snort/'${c_name}'%g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config logdir"
+
+			# Set the correct lib path for dynamicpreprocessor, dynamicengine, and dynamicdetection
+			sed -i -e 's:/usr/local/lib/snort_dynamicpreprocessor/:/usr/'$(get_libdir)'/snort_dynamicpreprocessor:g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf dynamicpreprocessor"
+			sed -i -e 's:/usr/local/lib/snort_dynamicengine:/usr/'$(get_libdir)'/snort_dynamicengine:g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf dynamicengine"
+			sed -i -e 's:/usr/local/lib/snort_dynamicrules:/usr/'$(get_libdir)'/snort_dynamicrules:g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf dynamicrules"
+
+			# Disable normalization. Does nothing in passive mode
+			sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf normalization"
+
+			echo
+			echo "Finished!"
+			echo
+			echo "A passive instance of Snort, listening on ${c_iface} using the afpacket DAQ module"
+			echo "and configured to drop permissions to snort:snort at start up, has been created in"
+			echo
+			echo "/etc/snort/${c_name}"
+			echo
+			echo "See /usr/share/doc/${PF} for information on configuring snort."
+			echo
+			echo "Please add the following line to /etc/conf.d/snort:"
+			echo
+			echo "config_snort<instance number>=( "${c_name}" "snort.conf" "${c_iface}" "none" )"
+			echo
+			echo "and change "<instance number>" to correspond to the snort init.d script you will use to"
+			echo "start this instance of snort. (see the comments in /etc/conf.d/snort for more details)"
+			echo
+			exit
+			;;
+
+			Upgrade )
+
+			echo "This process will update the following files for an exsisting Snort instance:"
+			echo
+			echo "classification.config"
+			echo "gen-msg.map"
+			echo "reference.config"
+			echo "unicode.map"
+			echo
+			echo "Press ENTER to update these files or press Ctrl+C to exit."
+			read
+			echo
+			echo
+			read -p "Please the instance name you wish to update (case sensitive): " u_name
+
+			if [ -e /etc/snort/"${u_name}" ]; then
+
+				echo "Upgrading instance ${u_name}..."
+
+				cp ${ROOT}/usr/share/snort/default/classification.config ${ROOT}/etc/snort/${u_name}
+				cp ${ROOT}/usr/share/snort/default/gen-msg.map ${ROOT}/etc/snort/${u_name}
+				cp ${ROOT}/usr/share/snort/default/reference.config ${ROOT}/etc/snort/${u_name}
+				cp ${ROOT}/usr/share/snort/default/unicode.map ${ROOT}/etc/snort/${u_name}
+				chown -R snort:snort ${ROOT}/etc/snort/${c_name}
+
+				echo
+				echo "Finished!"
+				echo
+				echo "The Sourcefire Vulnerability Research Team (VRT) recommends that users"
+				echo "migrate their snort.conf customizations to the latest config file"
+				echo "released by the VRT."
+				echo
+				echo "If you chose to continue, your current snort.conf for the snort instance ${u_name}"
+				echo "will be backuped to snort.conf.<unix time stamp> and a new snort.conf, with the"
+				echo "required Gentoo changes, will be added to /etc/snort/${u_name}."
+				echo "You can then manually migrate your customizations to the new snort.conf."
+				echo
+				echo "Would you like to continue with the snort.conf update?"
+
+				select yn in "Continue" "Exit"; do
+		        	case ${yn} in
+						Continue )
+
+							echo "Backing up /etc/snort/${u_name}/snort.conf..."
+
+							if [ -e /etc/snort/${u_name}/snort.conf ]; then
+
+								mv /etc/snort/${u_name}/snort.conf /etc/snort/${u_name}/snort.conf.`date +%s`
+								cp /usr/share/snort/default/snort.conf /etc/snort/${u_name}
+								chown snort:snort ${ROOT}/etc/snort/${u_name}/snort.conf
+
+								# Set the correct rule location in the config
+								sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/'${u_name}'/rules:g' \
+									"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf rule path"
+
+								# Set the correct so_rule location in the config
+								sed -i -e 's:SO_RULE_PATH ../rules:SO_RULE_PATH /etc/snort/'${u_name}'/so_rules:g' \
+									"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf so_rule path"
+
+								# Set the correct preprocessor/decoder rule location in the config
+								sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/'${u_name}'/preproc_rules:g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf preproc rule path"
+
+								# Set afpacket as the configured DAQ
+								sed -i -e 's/^# config daq: <type>/config daq: afpacket/g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq"
+
+								# Set the location of the DAQ modules
+								sed -i -e 's%^# config daq_dir: <dir>%config daq_dir: /usr/'$(get_libdir)'/daq%g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq_dir"
+
+								# Set the DAQ mode to passive
+								sed -i -e 's%^# config daq_mode: <mode>%config daq_mode: passive%g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq_mode"
+
+								# Set snort to run as snort:snort
+								sed -i -e 's%^# config set_gid:%config set_gid: snort%g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config set_gid"
+								sed -i -e 's%^# config set_uid:%config set_uid: snort%g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config set_uid"
+
+								# Set the default log dir
+								sed -i -e 's%^# config logdir:%config logdir: /var/log/snort/'${u_name}'%g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config logdir"
+
+								# Set the correct lib path for dynamicpreprocessor, dynamicengine, and dynamicdetection
+								sed -i -e 's:/usr/local/lib/snort_dynamicpreprocessor/:/usr/'$(get_libdir)'/snort_dynamicpreprocessor:g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf dynamicpreprocessor"
+								sed -i -e 's:/usr/local/lib/snort_dynamicengine:/usr/'$(get_libdir)'/snort_dynamicengine:g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf dynamicengine"
+								sed -i -e 's:/usr/local/lib/snort_dynamicrules:/usr/'$(get_libdir)'/snort_dynamicrules:g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf dynamicrules"
+
+								# Disable normalization. Does nothing in passive mode
+								sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf normalization"
+
+								echo
+								echo "Finished!"
+								echo
+								echo "Your exsisting snort.conf has been backed up and a new one installed"
+								echo "into /etc/snort/${u_name}."
+								echo "Please manually migrate your customizations to the new snort.conf."
+								echo
+								echo "Thank you, and happy snorting!"
+								exit
+
+							else
+
+								echo "The file /etc/snort/${u_name}/snort.conf does not exist."
+								echo "Please check the instance name again and then run"
+								echo "'emerge --config snort' again."
+								exit
+							fi
+							;;
+
+						Exit )
+
+							echo
+							echo "Thank you, and happy snorting!"
+							exit
+					esac
+					done
+
+			else
+
+				echo "The directory /etc/snort/${u_name} does not exist. Please check the instance name"
+				echo "again and then run 'emerge --config snort' again."
+				exit
+			fi
+
+		esac
+		done
 }

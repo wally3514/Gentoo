@@ -1,10 +1,13 @@
 /var/log/httpry/httpry.log {
+	prerotate
+		/etc/init.d/httpry stop
+	endscript
 	compress
 	rotate 7
 	daily
 	dateext
 	create
 	postrotate
-		/etc/init.d/httpry reload
+		/etc/init.d/httpry start
 	endscript
 }

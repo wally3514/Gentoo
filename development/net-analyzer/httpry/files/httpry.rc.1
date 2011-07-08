@@ -10,8 +10,7 @@ depend() {
 start() {
 	ebegin "Starting httpry"
 	start-stop-daemon --start --quiet --exec /usr/sbin/httpry \
-		--pidfile /var/run/httpry.pid \
-		-- -d -q "${HTTPRY_OPTS}" >/dev/null 2>&1
+		--pidfile /var/run/httpry.pid -- -d -q ${HTTPRY_OPTS}
 	eend $? "Failed to start httpry"
 
 }

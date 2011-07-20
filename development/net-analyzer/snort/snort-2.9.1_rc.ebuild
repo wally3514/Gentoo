@@ -7,7 +7,7 @@ inherit eutils autotools multilib
 
 DESCRIPTION="The de facto standard for intrusion detection/prevention"
 HOMEPAGE="http://www.snort.org/"
-SRC_URI="http://www.snort.org/downloads/1000 -> ${P}.tar.gz"
+SRC_URI="http://www.snort.org/downloads/1056 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
@@ -145,7 +145,7 @@ src_install() {
 		etc/threshold.conf \
 		etc/unicode.map || die "Failed to install docs in etc"
 
-	touch /usr/share/snort/default/rules/local.rules
+	touch "${D}"/usr/share/snort/default/rules/local.rules
 
 	insinto /usr/share/snort/default/preproc_rules
 	doins preproc_rules/decoder.rules \

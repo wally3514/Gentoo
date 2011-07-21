@@ -19,6 +19,7 @@ DEPEND=">=net-libs/libpcap-1.0.0
 	>=net-libs/daq-0.5
 	>=dev-libs/libpcre-6.0
 	dev-libs/libdnet
+	dev-util/pkgconfig
 	postgres? ( dev-db/postgresql-base )
 	mysql? ( virtual/mysql )
 	odbc? ( dev-db/unixODBC )
@@ -222,23 +223,34 @@ pkg_postinst() {
 
 pkg_config() {
 
-	einfo "This configuration process is designed to:"
-	einfo
-	einfo "1. Help new users install their first instance of Snort"
-	einfo "   and prform basic cleanup and configuration of the"
-	einfo "   snort.conf file."
-	einfo
-	einfo "2. Help current users install additional instance of Snort"
-	einfo "   and update critical files for existing Snort instances"
-	einfo
-	einfo "Press ENTER to continue or Ctrl+C to exit..."
-	read
+	clear
+	echo "This configuration process is designed to:"
+	echo
+	echo "Help new users install their first instance of Snort"
+	echo "and prform basic cleanup and configuration of the"
+	echo "snort.conf file."
+	echo
+	echo "Help current users install additional instance of Snort"
+	echo "and update critical files for existing snort-2.9.1 or newer instances."
+	echo
+	echo "Migration to snort-2.9.1:"
+	echo
+	echo "To migrate an existing snort install that is older than"
+	echo "snort-2.9.1 to the new layout follow these steps:"
+	echo
+	echo "These steps are _required_ for installs of snort older than snort-2.9.1"
+	echo
+	echo "Setp 1. Choose 1 and following the directions to create"
+	echo "        a new snort instance."
+	echo "Step 2. Migrate your custom snort.conf settings to the"
+	echo "        new snort.conf for the instance you just created."
+	echo "Step 3. Copy your text and SO rules from /etc/snort/rules"
+	echo "        and /etc/snort/so_rules to the new instance."
 	echo
 	echo
-	echo "Do you want to create a new instance of Snort or upgrade"
-	echo "an existing instance?"
+	echo "Do you want to create a new instance of Snort or upgrade an existing instance?"
 
-	select c_u in "Create" "Upgrade"; do
+	select c_u in "Create" "Upgrade" "Exit"; do
 		case ${c_u} in
 			Create )
 
@@ -257,7 +269,7 @@ pkg_config() {
 				"${ROOT}/etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf rule path"
 
 			# Set the correct so_rule location in the config
-			sed -i -e 's:SO_RULE_PATH ../rules:SO_RULE_PATH /etc/snort/'${c_name}'/so_rules:g' \
+			sed -i -e 's:SO_RULE_PATH ../so_rules:SO_RULE_PATH /etc/snort/'${c_name}'/so_rules:g' \
 				"${ROOT}/etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf so_rule path"
 
 			# Set the correct preprocessor/decoder rule location in the config
@@ -298,11 +310,12 @@ pkg_config() {
 			sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf normalization"
 
+			clear
 			echo
 			echo "Finished!"
 			echo
-			echo "A passive instance of Snort, listening on ${c_iface} using the afpacket DAQ module"
-			echo "and configured to drop permissions to snort:snort at start up, has been created in"
+			echo "A passive instance of Snort, listening on ${c_iface}, using the afpacket DAQ module,"
+			echo "and configured to drop permissions to snort:snort at start up has been created in"
 			echo
 			echo "/etc/snort/${c_name}"
 			echo
@@ -310,16 +323,26 @@ pkg_config() {
 			echo
 			echo "Please add the following line to /etc/conf.d/snort:"
 			echo
-			echo "config_snort<instance number>=( "${c_name}" "snort.conf" "${c_iface}" "none" )"
+			echo "config_snort<instance number>=( \""${c_name}"\" \"snort.conf\" \""${c_iface}"\" \"none\" )"
 			echo
-			echo "and change "<instance number>" to correspond to the snort init.d script you will use to"
+			echo "and change '<instance number>' to correspond to the snort init.d script you will use to"
 			echo "start this instance of snort. (see the comments in /etc/conf.d/snort for more details)"
 			echo
-			exit
+			return
 			;;
 
 			Upgrade )
 
+			echo "Warning:"
+			echo
+			echo "This process is for updating exsiting snort-2.9.1 or newer instances."
+			echo "If you are attempting to migrate an older version of snort to snort-2.9.1"
+			echo "or newer you should press Ctrl+C now and re-run 'emerge --config snort'"
+			echo "and follow the three step migration process listed on the first screen."
+			echo
+			echo "Press ENTER to continue or press Ctrl+C to exit."
+			read
+			clear
 			echo "This process will update the following files for an exsisting Snort instance:"
 			echo
 			echo "classification.config"
@@ -327,13 +350,14 @@ pkg_config() {
 			echo "reference.config"
 			echo "unicode.map"
 			echo
-			echo "Press ENTER to update these files or press Ctrl+C to exit."
-			read
+			echo "The following snort instances are currently installed:"
+			echo
+			ls -1 ${ROOT}/etc/snort
 			echo
 			echo
-			read -p "Please the instance name you wish to update (case sensitive): " u_name
+			read -p "Please enter the instance name you wish to update (case sensitive): " u_name
 
-			if [ -e /etc/snort/"${u_name}" ]; then
+			if [ -e ${ROOT}/etc/snort/"${u_name}" ]; then
 
 				echo "Upgrading instance ${u_name}..."
 
@@ -341,9 +365,9 @@ pkg_config() {
 				cp ${ROOT}/usr/share/snort/default/gen-msg.map ${ROOT}/etc/snort/${u_name}
 				cp ${ROOT}/usr/share/snort/default/reference.config ${ROOT}/etc/snort/${u_name}
 				cp ${ROOT}/usr/share/snort/default/unicode.map ${ROOT}/etc/snort/${u_name}
-				chown -R snort:snort ${ROOT}/etc/snort/${c_name}
+				chown -R snort:snort ${ROOT}/etc/snort/${u_name}
 
-				echo
+				clear
 				echo "Finished!"
 				echo
 				echo "The Sourcefire Vulnerability Research Team (VRT) recommends that users"
@@ -351,7 +375,7 @@ pkg_config() {
 				echo "released by the VRT."
 				echo
 				echo "If you chose to continue, your current snort.conf for the snort instance ${u_name}"
-				echo "will be backuped to snort.conf.<unix time stamp> and a new snort.conf, with the"
+				echo "will be backed up to snort.conf.<unix time stamp> and a new snort.conf, with the"
 				echo "required Gentoo changes, will be added to /etc/snort/${u_name}."
 				echo "You can then manually migrate your customizations to the new snort.conf."
 				echo
@@ -363,10 +387,10 @@ pkg_config() {
 
 							echo "Backing up /etc/snort/${u_name}/snort.conf..."
 
-							if [ -e /etc/snort/${u_name}/snort.conf ]; then
+							if [ -e ${ROOT}/etc/snort/${u_name}/snort.conf ]; then
 
-								mv /etc/snort/${u_name}/snort.conf /etc/snort/${u_name}/snort.conf.`date +%s`
-								cp /usr/share/snort/default/snort.conf /etc/snort/${u_name}
+								mv ${ROOT}/etc/snort/${u_name}/snort.conf /etc/snort/${u_name}/snort.conf.`date +%s`
+								cp ${ROOT}/usr/share/snort/default/snort.conf /etc/snort/${u_name}
 								chown snort:snort ${ROOT}/etc/snort/${u_name}/snort.conf
 
 								# Set the correct rule location in the config
@@ -415,22 +439,21 @@ pkg_config() {
 								sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf normalization"
 
-								echo
+								clear
 								echo "Finished!"
 								echo
-								echo "Your exsisting snort.conf has been backed up and a new one installed"
-								echo "into /etc/snort/${u_name}."
+								echo "Your exsisting snort.conf has been backed up and a new one installed into /etc/snort/${u_name}."
 								echo "Please manually migrate your customizations to the new snort.conf."
 								echo
 								echo "Thank you, and happy snorting!"
-								exit
+								return
 
 							else
 
 								echo "The file /etc/snort/${u_name}/snort.conf does not exist."
 								echo "Please check the instance name again and then run"
 								echo "'emerge --config snort' again."
-								exit
+								return
 							fi
 							;;
 
@@ -438,7 +461,7 @@ pkg_config() {
 
 							echo
 							echo "Thank you, and happy snorting!"
-							exit
+							return
 					esac
 					done
 
@@ -446,8 +469,14 @@ pkg_config() {
 
 				echo "The directory /etc/snort/${u_name} does not exist. Please check the instance name"
 				echo "again and then run 'emerge --config snort' again."
-				exit
+				return
 			fi
+			;;
+
+			Exit )
+				echo
+				echo "Thank you, and happy snorting!"
+				return
 
 		esac
 		done

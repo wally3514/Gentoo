@@ -170,36 +170,32 @@ src_install() {
 }
 
 pkg_postinst() {
+	einfo
+	einfo "There have been a number of improvements and new features"
+	einfo "added to ${P}. Please review the RELEASE.NOTES and"
+	einfo "ChangLog located in /usr/share/doc/${PF}."
+	einfo
+	einfo "With the release of snort-2.9.1 the snort ebuild has under"
+	einfo "gone a major rework. The Snort ebuild now supports running"
+	einfo "multipule instances of Snort on a single sensor and pinning"
+	einfo "individual Snort instances to a specific CPU. In addition,"
+	einfo "a post install configuration process has been created to help"
+	einfo "with creating and updating individual instances of Snort."
 	elog
-	elog "Snort-2.9 introduces the DAQ, or Data Acquisition library, for"
-	elog "packet I/O. The DAQ replaces direct calls to PCAP functions with"
-	elog "an abstraction layer that	facilitates operation on a variety of"
-	elog "hardware and software interfaces without requiring changes to Snort."
+	elog "Snort-2.9.1 or newer users:"
+	elog "Please run 'emerge --config snort' to update the core"
+	elog "configuration files for your snort instances."
 	elog
-	elog "The only DAQ modules supported with this ebuild are AFpacket, PCAP,"
-	elog "and Dump. IPQ nad NFQ will be supported in future versions of this"
-	elog "package."
+	elog "Upgrading to snort-2.9.1 from previous versions:"
+	elog "If you are updating Snort from a version older than snort-2.9.1"
+	elog "you will need to run 'etc-update' and replace /etc/conf.d/snort"
+	elog "with the one provided by this ebuild. You will also need to"
+	elog "migrate your current Snort configuration to the new instance"
+	elog "based architecture."
 	elog
-	elog "For passive (non-inline) Snort deployments you will want to use"
-	elog "either PCAP or AFpacket. For inline deployments you will need"
-	elog "to use AFpacket. The Dump DAQ is used for testing the various inline"
-	elog "features available in ${P}."
-	elog
-	elog "The core DQA libraries are installed in /usr/$(get_libdir)/. The libraries"
-	elog "for the individual DAQ modules (afpacket,pcap,dump) are installed in"
-	elog "/usr/$(get_libdir)/daq. To use these you will need to add the following"
-	elog "lines to your snort.conf:"
-	elog
-	elog "config daq: <DAQ module>"
-	elog "config daq_mode: <mode>"
-	elog "config daq_dir: /usr/$(get_libdir)/daq"
-	elog
-	elog "Please see the README file for DAQ for information about specific"
-	elog "DAQ modules and README.daq from the Snort 2.9 documentation"
-	elog "reguarding Snort and DAQ configuration information."
-	elog
-	elog "See /usr/share/doc/${PF} and /etc/snort/snort.conf.distrib for"
-	elog "information on configuring snort."
+	elog "Please run 'emerge --config snort' and follow the instructions"
+	elog "to migrate your exsisting Snort install to the new configuration"
+	elog "arachitecture."
 	elog
 
 	if [[ $(date +%Y%m%d) < 20110312 ]]; then
@@ -242,15 +238,17 @@ pkg_config() {
 	echo
 	echo "Setp 1. Choose 1 and following the directions to create"
 	echo "        a new snort instance."
-	echo "Step 2. Migrate your custom snort.conf settings to the"
+	echo
+	echo "Step 2. Migrate your custom Snort settings to the"
 	echo "        new snort.conf for the instance you just created."
+	echo
 	echo "Step 3. Copy your text and SO rules from /etc/snort/rules"
 	echo "        and /etc/snort/so_rules to the new instance."
+	echo
 	echo "Step 4. (optional) If you are using a tool such as pulledpork"
 	echo "        to manage your rules, you should update the config"
-	echo "        to point to the new rule location for the instance"
-	echo "        you just created."
-	echo
+	echo "        file to point to the rule location for the instance"
+	echo "        you created in Step 1."
 	echo
 	echo "Do you want to create a new instance of Snort or upgrade an existing instance?"
 

@@ -259,9 +259,21 @@ pkg_config() {
 			echo
 			read -p "Please enter a name for this instance (alpha/numeric and _ only): " c_name
 			echo
-			read -p "Which interface will Snort be listening on: " c_iface
+			read -p "Will this be a passive or inline instance (passive/inline)" c_listen
 			echo
-			echo "Creating instance ${c_name} listening on ${c_iface}..."
+			echo "Which interface(s) will Snort be listening on?"
+			echo "For a passive deployment, enter a single NIC (ex. eth1)"
+			echo "For an inline deployment, enter two NICs seperated by a colon (ex. eth1:eth2)"
+			read -p "Enter interface(s): " c_iface
+			echo
+			echo "What Data Acquisition (DAQ) module do you want to use?"
+			echo "afpacket - (New) Supports passive and inline modes. (recommended)"
+			echo "pcap     - (Old) method. Supports passive mode only"
+			echo "nfq      - (New) Supports inline mode. Requires iptables integration."
+			echo "ipq      - (Old) Supports inline mode. Requires iptables integration."
+			read -p "Enter DAQ Module, all lower case (afpacket/pcap/nfq/ipq):" c_daq
+
+			echo "Creating a ${c_listen} instance called ${c_name} listening on ${c_iface}..."
 
 			cp -R ${ROOT}/usr/share/snort/default ${ROOT}/etc/snort/${c_name}
 			chown -R snort:snort ${ROOT}/etc/snort/${c_name}
@@ -281,7 +293,7 @@ pkg_config() {
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf preproc rule path"
 
 			# Set afpacket as the configured DAQ
-			sed -i -e 's/^# config daq: <type>/config daq: afpacket/g' \
+			sed -i -e 's/^# config daq: <type>/config daq: '${c_daq}'/g' \
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config daq"
 
 			# Set the location of the DAQ modules
@@ -289,7 +301,7 @@ pkg_config() {
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config daq_dir"
 
 			# Set the DAQ mode to passive
-			sed -i -e 's%^# config daq_mode: <mode>%config daq_mode: passive%g' \
+			sed -i -e 's%^# config daq_mode: <mode>%config daq_mode: '${c_listen}'%g' \
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf config daq_mode"
 
 			# Set snort to run as snort:snort
@@ -316,14 +328,14 @@ pkg_config() {
 
 			# Disable the text based rules. They are not shipped with the tarball.
 			sed -i -e 's:^include $RULE_PATH/:# include $RULE_PATH/:g' \
-				"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to disable text rules"
+				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to disable text rules"
 
 			clear
 			echo
 			echo "Finished!"
 			echo
-			echo "A passive instance of Snort, listening on ${c_iface}, using the afpacket DAQ module,"
-			echo "and configured to drop permissions to snort:snort at start up has been created in"
+			echo "A ${c_listen} instance of Snort, listening on ${c_iface}, using the ${c_daq} DAQ module,"
+			echo "called ${c_name} has been created in:"
 			echo
 			echo "/etc/snort/${c_name}"
 			echo
@@ -331,9 +343,9 @@ pkg_config() {
 			echo
 			echo "Please add the following line to /etc/conf.d/snort:"
 			echo
-			echo "config_snort<instance number>=( \""${c_name}"\" \"snort.conf\" \""${c_iface}"\" \"none\" )"
+			echo "config_snort<instance #>=( \""${c_name}"\" \"snort.conf\" \""${c_iface}"\" \"none\" )"
 			echo
-			echo "and change '<instance number>' to correspond to the snort init.d script you will use to"
+			echo "and change '<instance #>' to correspond to the snort init.d script you will use to"
 			echo "start this instance of snort. (see the comments in /etc/conf.d/snort for more details)"
 			echo
 			return

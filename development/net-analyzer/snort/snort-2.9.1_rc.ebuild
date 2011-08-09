@@ -405,6 +405,10 @@ pkg_config() {
 		        	case ${yn} in
 						Continue )
 
+
+							local current_daq="`grep "^config daq:"`"
+							local curent_daq_mode="`grep "^config daq_mode:"`"
+
 							echo "Backing up /etc/snort/${u_name}/snort.conf..."
 
 							if [ -e ${ROOT}/etc/snort/${u_name}/snort.conf ]; then
@@ -425,16 +429,16 @@ pkg_config() {
 								sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/'${u_name}'/preproc_rules:g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf preproc rule path"
 
-								# Set afpacket as the configured DAQ
-								sed -i -e 's/^# config daq: <type>/config daq: afpacket/g' \
+								# Set the configured DAQ
+								sed -i -e 's/^# config daq:<type>/'${current_daq}'/g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq"
 
 								# Set the location of the DAQ modules
 								sed -i -e 's%^# config daq_dir: <dir>%config daq_dir: /usr/'$(get_libdir)'/daq%g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq_dir"
 
-								# Set the DAQ mode to passive
-								sed -i -e 's%^# config daq_mode: <mode>%config daq_mode: passive%g' \
+								# Set the DAQ mode
+								sed -i -e 's%^# config daq_mode: <mode>%'${current_daq_mode}'%g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq_mode"
 
 								# Set snort to run as snort:snort
@@ -467,7 +471,21 @@ pkg_config() {
 								echo "Finished!"
 								echo
 								echo "Your exsisting snort.conf has been backed up and a new one installed into /etc/snort/${u_name}."
-								echo "Please manually migrate your customizations to the new snort.conf."
+								echo
+								echo "The following additional config options were migrated from your prievious config file:"
+								echo
+								echo "${current_daq}"
+								echo "config daq_dir: /usr/$(get_libdir)/daq"
+								echo "${current_daq_mode}"
+								echo "config logdir: /var/log/snort/${u_name}"
+								echo
+								echo "Note:"
+								echo "By default, this update process sets snort to run as snort:snort"
+								echo "and disables the normalization preprocessor. If you need to run"
+								echo "Snort as root or need inline normalization, make sure you change"
+								echo "these settings in the new snort.conf."
+								echo
+								echo "Please manually migrate your other customizations to the new snort.conf."
 								echo
 								echo "Thank you, and happy snorting!"
 								return

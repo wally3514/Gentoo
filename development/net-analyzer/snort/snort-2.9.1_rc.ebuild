@@ -11,9 +11,9 @@ SRC_URI="http://www.snort.org/downloads/1056 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="static +dynamicplugin +zlib gre mpls targetbased +decoder-preprocessor-rules
-ppm perfprofiling linux-smp-stats inline-init-failopen +threads debug active-response 
-normalizer reload-error-restart react flexresp3 paf aruba mysql odbc postgres selinux"
+IUSE="static +dynamicplugin +zlib +gre +mpls +targetbased +decoder-preprocessor-rules
++ppm +perfprofiling linux-smp-stats inline-init-failopen +threads debug +active-response 
++normalizer reload-error-restart +react +flexresp3 paf aruba mysql odbc postgres selinux"
 
 DEPEND=">=net-libs/libpcap-1.0.0
 	>=net-libs/daq-0.5
@@ -159,7 +159,7 @@ src_install() {
 		"${D}"/etc/snort \
 		"${D}"/usr/share/snort || die "Failed to set ownership of dirs"
 
-	newinitd "${FILESDIR}/snort.0.rc1" snort || die "Failed to install snort init script"
+	newinitd "${FILESDIR}/snort.0.rc1" snort.0 || die "Failed to install snort init script"
 	newconfd "${FILESDIR}/snort.confd.1" snort || die "Failed to install snort confd file"
 
 	# Sourcefire uses Makefiles to install docs causing Bug #297190.
@@ -246,6 +246,10 @@ pkg_config() {
 	echo "        new snort.conf for the instance you just created."
 	echo "Step 3. Copy your text and SO rules from /etc/snort/rules"
 	echo "        and /etc/snort/so_rules to the new instance."
+	echo "Step 4. (optional) If you are using a tool such as pulledpork"
+	echo "        to manage your rules, you should update the config"
+	echo "        to point to the new rule location for the instance"
+	echo "        you just created."
 	echo
 	echo
 	echo "Do you want to create a new instance of Snort or upgrade an existing instance?"
@@ -263,6 +267,8 @@ pkg_config() {
 
 			cp -R ${ROOT}/usr/share/snort/default ${ROOT}/etc/snort/${c_name}
 			chown -R snort:snort ${ROOT}/etc/snort/${c_name}
+			mkdir ${ROOT}/var/log/snort/${c_name}
+			chown -R snort:snort ${ROOT}/var/log/snort/${c_name}
 
 			# Set the correct rule location in the config
 			sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/'${c_name}'/rules:g' \
@@ -309,6 +315,10 @@ pkg_config() {
 			# Disable normalization. Does nothing in passive mode
 			sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf normalization"
+
+			# Disable the text based rules. They are not shipped with the tarball.
+			sed -i -e 's:^include $RULE_PATH/:# include $RULE_PATH/:g' \
+				"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to disable text rules"
 
 			clear
 			echo
@@ -438,6 +448,10 @@ pkg_config() {
 								# Disable normalization. Does nothing in passive mode
 								sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf normalization"
+
+								# Disable the text based rules. They are not shipped with the tarball.
+								sed -i -e 's:^include $RULE_PATH/:# include $RULE_PATH/:g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to disable text rules"
 
 								clear
 								echo "Finished!"

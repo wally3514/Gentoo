@@ -65,7 +65,8 @@ start()
 
 	if [ "${cpu_id}" == "none" ]; then
 		start-stop-daemon --start --quiet --exec /usr/bin/snort \
-			-- --nolock-pidfile --pid-path /var/run/snort -D -R "-${inst_name}" -c "${inst_conf}" >/dev/null 2>&1
+			-- --nolock-pidfile --pid-path /var/run/snort -D -R "-${inst_name}" \
+			-c "/etc/snort/${inst_name}/${conf_name}" >/dev/null 2>&1
 		eend $?
 	else
 		start-stop-daemon --start --quiet --exec /usr/bin/taskset \

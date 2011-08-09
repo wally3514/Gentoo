@@ -1,4 +1,92 @@
-# Config file for /etc/init.d/snort
-
+# Config file for /etc/init.d/snort.0
+#
+# The snort ebuild now supports running multipule instances of Snort and
+# includes optional CPU pinning of individual Snort instances. To support
+# multipule instances of Snort, the init.d scripts and this conf.d file 
+# have been changed to use a design simular to that used by baselayout
+# to support starting multipule network interface cards using a single
+# conf.d file.
+#
+# !!! IMPORTANT !!!
+# The default snort.conf now includes the following entries:
+#
+# config daq:
+# config daq_dir:
+# config daq_mode:
+# config logdir:
+#
+# If you descide to create Snort instance manually and not use 'emerge --config snort'
+# you must configure these settings for the init.d scripts to work. These are set
+# correctly for you if you use 'emerge --config snort' to create new instances of Snort.
+#
+# Optionally, you may also want to cofigure the following if you need these settings as well:
+#
+# config daq_var: 
+# config set_gid: 
+# config set_uid: 
+# config snaplen:
+# config bpf_file:
+#
+# These settings are no longer defined in this conf.d file.
+#
+# The format of this file is as follows:
+#
+# config_snort<instance #>=( "<instance name>" "<snort config>" "<capture interface>" "<CPU>" )
+#
+# <instance #>
+# The new snort init.d script names have the format /etc/init.d/snort.<instance #>. Each init.d
+# script must have a corresponding config_snort<instance #> entry in this conf.d file.
+# To create new init.d scripts to support additional Snort, create a symlink to the existing 
+# snort.0 init.d scripts installed by the Snort ebuild.
+#
+# cd /etc/init.d
+# ln -s snort.0 snort.1
+#
+# <instance name>
+# This can be any string of alpha/numeric characters and must match an existing instance directory
+# located in /etc/snort/.
+#
+# <snort config>
+# The name of the configuration file for this instance of Snort. The default is snort.conf.
+#
+# <capture interface>
+# The name of the interface(s) Snort is listening on. For passive deployments, a single interface
+# should be used.
+#
+# Example: "eth1"
+#
+# For inline deployments, two interfaces seperated by a colon should be used.
+#
+# Example: "eth1:eth2"
+#
+# <CPU>
+# The processor to pin this instance of Snort to. The first processor on a system is always "0".
+# Use 'cat /proc/cpuinfo' to see a list of available processors for your system. CPU pinning is
+# optional. If you do not want to pin an instance to a specific CPU use "none".
+#
+# CPU pinning:
+# You should always leave one CPU free for normal systme processes, barnyard2, and your rule management
+# tools. So for a system with 4 CPUs and dedicated to running Snort, you should only use 3 pinned 
+# instances of Snort.
+# If your system is also running other services such as Apache, MySQL, Snorby, etc, you should leave 
+# additional CPUs free to service requests for these services or not use CPU pinning at all.
+#
+# Example 1:
+# The snort_config line for a passive instance of Snort listening on eth1, started by 
+# /etc/init.d/snort.0, with a instance name of "DMZ" and no CPU pinning would be:
+#
+# config_snort0=( "DMZ" "snort.conf" "eth1" "none" )
+#
+# And the Snort configuration files would be located in /etc/snort/DMZ/.
+#
+# Example 2:
+# The snort_config line for an inline instance of Snort using eth1 and eth2 started by
+# /etc/init.d/snort.9, with an instance name of "Internet" and pinned to processor 4
+# would be:
+#
+# config_snort9=( "Internet" "snort.conf" "eth1:eth2" "4" )
+#
+# And the Snort configuration files would be located in /etc/snort/Internet/.
+#
 config_snort0=( "default" "snort.conf" "eth1" "none" )
 

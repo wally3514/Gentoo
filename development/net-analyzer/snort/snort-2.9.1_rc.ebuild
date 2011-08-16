@@ -257,7 +257,9 @@ pkg_config() {
 			Create )
 
 			echo
-			read -p "Please enter a name for this instance (alpha/numeric and _ only): " c_name
+			echo "Please enter a name for this instance."
+			echo "Format: The name must be alpha-numeric and less than 10 characters in length."
+			read -p "Name: " c_name
 			echo
 			read -p "Will this be a passive or inline instance (passive/inline)" c_listen
 			echo

@@ -15,17 +15,17 @@ depend() {
 	after postgresql
 }
 
-checkconfig() 
-{
+config_id=snort${SVCNAME#*.}
+a=() inst_name=() conf_name=() pcap_iface=() cpu_id=()
+a="config_${config_id}[@]"
+a=( "${!a}" )
+inst_name="${a[0]}"
+conf_name="${a[1]}"
+pcap_iface="${a[2]}"
+cpu_id="${a[3]}"
+
+checkconfig() {
 	local max_cpus=$[ `grep -c processor /proc/cpuinfo` - 1 ]
-	local -a a=() inst_name=() conf_name=() pcap_iface=() cpu_id=()
-	local config_id=snort${SVCNAME#*.}
-	a="config_${config_id}[@]"
-	a=( "${!a}" )
-	inst_name="${a[0]}"
-	conf_name="${a[1]}"
-	pcap_iface="${a[2]}"
-	cpu_id="${a[3]}"
 
 	if [ ! -e ${inst_conf} ] ; then
 		eerror "File /etc/snort/${inst_name}/${conf_name} not found."
@@ -42,22 +42,13 @@ checkconfig()
 	fi
 }
 
-start() 
-{
+start() {
 	checkconfig || return 1
-	local config_id=snort${SVCNAME#*.}
-	local -a a=() inst_name=() conf_name=() cpu_id=()
-	a="config_${config_id}[@]"
-	a=( "${!a}" )
-	inst_name="${a[0]}"
-	conf_name="${a[1]}"
-	pcap_iface="${a[2]}"
-	cpu_id="${a[3]}"
-
-	ebegin "Starting Snort Instance:"
+	ebegin "Starting Snort:"
 	eindent
 		einfo "Instance = ${inst_name}"
 		einfo "Config file = /etc/snort/${inst_name}/${conf_name}"
+		einfo "Interface = ${pcap_iface}"
 		if [ "${cpu_id}" != "none" ]; then
 			einfo "CPU = ${cpu_id}"
 		fi
@@ -65,36 +56,53 @@ start()
 
 	if [ "${cpu_id}" == "none" ]; then
 		start-stop-daemon --start --quiet --exec /usr/bin/snort \
-			-- --nolock-pidfile --pid-path /var/run/snort -D -R "-${inst_name}" \
+			-- --nolock-pidfile --pid-path /var/run/snort -D -R "-${inst_name}" -i "${pcap_iface}" \
 			-c "/etc/snort/${inst_name}/${conf_name}" >/dev/null 2>&1
 		eend $?
 	else
-		start-stop-daemon --start --quiet --exec /usr/bin/taskset \
-			-- -c ${cpu_id} /usr/bin/snort --nolock-pidfile --pid-path /var/run/snort -D \
-			-R "-${inst_name}" -c "${inst_conf}" >/dev/null 2>&1
+		start-stop-daemon --start --quiet --exec /usr/bin/taskset -- -c ${cpu_id} /usr/bin/snort \
+			--nolock-pidfile --pid-path /var/run/snort -D -R "-${inst_name}" -i "${pcap_iface}" \
+			-c "/etc/snort/${inst_name}/${conf_name}" >/dev/null 2>&1
 	fi
-	
-		
 }
 
 stop() {
-	ebegin "Stopping snort"
-	start-stop-daemon --stop --quiet --pidfile /var/run/snort/snort_"${pcap_iface}"-"${inst_name}"
+	ebegin "Stopping Snort:"
+	eindent
+		einfo "Instance = ${inst_name}"
+		einfo "Interface = ${pcap_iface}"
+	eoutdent
+	start-stop-daemon --stop --pidfile /var/run/snort/snort_"${pcap_iface}"-"${inst_name}.pid"
 	# Snort needs a few seconds to fully shutdown
 	sleep 10
 	eend $?
 }
 
 reload() {
-        if [ ! -f /var/run/snort/snort_"${pcap_iface}"-"${inst_name}" ]; then
+
+	local snort_pid="`cat /var/run/snort/snort_${pcap_iface}-${inst_name}.pid`"
+	local snort_user="`ps -p ${snort_pid} --no-headers -o user`"
+
+        if [ ! -f /var/run/snort/snort_"${pcap_iface}"-"${inst_name}.pid" ]; then
         	eerror "Snort isn't running"
                 return 1
         fi
 
+	if [ ${snort_user} != root ]; then
+		eerror "Snort must be running a root for reload to work!"
+		return 1
+	fi
+
         checkconfig || return 1
-        ebegin "Reloading Snort"
-        start-stop-daemon --stop --oknodo --signal HUP --pidfile /var/run/snort/snort_"${pcap_iface}"-"${inst_name}"
+        ebegin "Reloading Snort:"
+	eindent
+		einfo "Instance = ${inst_name}"
+		einfo "Config file = /etc/snort/${inst_name}/${conf_name}"
+		einfo "Interface = ${pcap_iface}"
+		if [ "${cpu_id}" != "none" ]; then
+			einfo "CPU = ${cpu_id}"
+		fi
+	eoutdent
+        start-stop-daemon --signal HUP --pidfile /var/run/snort/snort_"${pcap_iface}"-"${inst_name}.pid"
         eend $?
 }
-
-

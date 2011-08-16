@@ -198,22 +198,12 @@ pkg_postinst() {
 	elog "arachitecture."
 	elog
 
-	if [[ $(date +%Y%m%d) < 20110312 ]]; then
-
-		ewarn
-		ewarn "Please note, you can not use ${P} with the SO rules from"
-		ewarn "previous versions of Snort!"
-		ewarn
-		ewarn "If you do not have a subscription to the VRT rule set and you"
-		ewarn "wish to continue using the shared object (SO) rules, you will"
-		ewarn "need to downgrade Snort. The SO rules will be made available"
-		ewarn "to registered (non-subscription) users on March 12, 2011"
-		ewarn "(30 days after being released to subscription users)."
-		ewarn
-		ewarn "Please see http://www.snort.org/snort-rules/#rules for more"
-		ewarn "details."
-		ewarn
-
+	if use debug; then
+		ewarn "You have selected the 'debug' USE flag. If you have done this"
+		ewarn "to provide Sourcefire with a coredump or backtrace information"
+		ewarn "to help troubleshoot a problem then you will also need to add"
+		ewarn "the 'nostrip' option to FEATURES in make.conf and re-run"
+		ewarn "'emerge snort'."
 	fi
 }
 

@@ -422,7 +422,7 @@ pkg_config() {
 									"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf rule path"
 
 								# Set the correct so_rule location in the config
-								sed -i -e 's:SO_RULE_PATH ../rules:SO_RULE_PATH /etc/snort/'${u_name}'/so_rules:g' \
+								sed -i -e 's:SO_RULE_PATH ../so_rules:SO_RULE_PATH /etc/snort/'${u_name}'/so_rules:g' \
 									"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf so_rule path"
 
 								# Set the correct preprocessor/decoder rule location in the config
@@ -451,167 +451,167 @@ pkg_config() {
 
 			# Migrated Changes
 								# If defined, migrate the configured DAQ
-								if grep -q "^config daq:" ${old_conf}; then
-									current_daq="`grep "^config daq:" ${old_conf}`"
+								if grep -q "^ *config daq:" ${old_conf}; then
+									current_daq="`grep "^ *config daq:" ${old_conf}`"
 									sed -i -e 's%^# config daq:.*$%'${current_daq}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config daq:"
 								fi
 
 								# If defined, migrate the DAQ mode
-								if grep -q "^config daq_mode:" ${old_conf}; then
-									curent_daq_mode="`grep "^config daq_mode:" ${old_conf}`"
+								if grep -q "^ *config daq_mode:" ${old_conf}; then
+									curent_daq_mode="`grep "^ *config daq_mode:" ${old_conf}`"
 									sed -i -e 's%^# config daq_mode:.*$%'${curent_daq_mode}'%g' \
 										 "${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config daq_mode:"
 								fi
 
 								# If defined, migrate the DAQ mode
-								if grep -q "^config daq_var:" ${old_conf}; then
-									curent_daq_var="`grep "^config daq_var:" ${old_conf}`"
+								if grep -q "^ *config daq_var:" ${old_conf}; then
+									curent_daq_var="`grep "^ *config daq_var:" ${old_conf}`"
 									sed -i -e 's%^# config daq_var:.*$%'${curent_daq_var}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config daq_var:"
 								fi
 
 								# If defined, migrate the configured gid/uid
-								if grep -q "^config set_gid:" ${old_conf}; then
-									current_gid="`grep "^config set_gid:" ${old_conf}`"
+								if grep -q "^ *config set_gid:" ${old_conf}; then
+									current_gid="`grep "^ *config set_gid:" ${old_conf}`"
 									sed -i -e 's%^# config set_gid:.*$%'${current_gid}'%g' \
 										 "${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config set_gid:"
 								fi
-								if grep -q "^config set_uid:" ${old_conf}; then
-									current_uid="`grep "^config set_uid:" ${old_conf}`"
+								if grep -q "^ *config set_uid:" ${old_conf}; then
+									current_uid="`grep "^ *config set_uid:" ${old_conf}`"
 									sed -i -e 's%^# config set_uid:.*$%'${current_uid}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config set_uid:"
 								fi
 
 								# If defined, migrate the configured snaplen
-								if grep -q "^config snaplen:" ${old_conf}; then
-									current_snaplen="`grep "^config snaplen:" ${old_conf}`"
+								if grep -q "^ *config snaplen:" ${old_conf}; then
+									current_snaplen="`grep "^ *config snaplen:" ${old_conf}`"
 									sed -i -e 's%^# config snaplen:.*$%'${current_snaplen}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config snaplen:"
 								fi
 
 								# If defined, migrate the configured pcre options
-								if grep -q "^config pcre_match_limit:" ${old_conf}; then
-									current_pcreml="`grep "^config pcre_match_limit:" ${old_conf}`"
+								if grep -q "^ *config pcre_match_limit:" ${old_conf}; then
+									current_pcreml="`grep "^ *config pcre_match_limit:" ${old_conf}`"
 									sed -i -e 's%^# config pcre_match_limit:.*$%'${current_pcreml}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config pcre_match_limit:"
 								fi
-								if grep -q "^config pcre_match_limit_recursion:" ${old_conf}; then
-									current_pcremlr="`grep "^config pcre_match_limit_recursion:" ${old_conf}`"
+								if grep -q "^ *config pcre_match_limit_recursion:" ${old_conf}; then
+									current_pcremlr="`grep "^ *config pcre_match_limit_recursion:" ${old_conf}`"
 									sed -i -e 's%^# config pcre_match_limit_recursion:.*$%'${current_pcremlr}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config pcre_match_limit_recursion:"
 								fi
 
 								# If defined, migrate the configured checksum_mode
-								if grep -q "^config checksum_mode:" ${old_conf}; then
-									current_checksum="`grep "^config checksum_mode:" ${old_conf}`"
+								if grep -q "^ *config checksum_mode:" ${old_conf}; then
+									current_checksum="`grep "^ *config checksum_mode:" ${old_conf}`"
 									sed -i -e 's%^config checksum_mode:.*$%'${current_checksum}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config checksum_mode:"
 								fi
 
 								# If defined, migrate the configured response
-								if grep -q "^config response:" ${old_conf}; then
-									current_response="`grep "^config response:" ${old_conf}`"
+								if grep -q "^ *config response:" ${old_conf}; then
+									current_response="`grep "^ *config response:" ${old_conf}`"
 									sed -i -e 's%^# config response:.*$%'${current_response}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config response:"
 								fi
 
 								# If defined, migrate the configured BPF
-								if grep -q "^config bpf_file:" ${old_conf}; then
-									current_bpf="`grep "^config bpf_file:" ${old_conf}`"
+								if grep -q "^ *config bpf_file:" ${old_conf}; then
+									current_bpf="`grep "^ *config bpf_file:" ${old_conf}`"
 									sed -i -e 's%^# config bpf_file:.*$%'${current_bpf}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config bpf_file:"
 								fi
 
 								# If defined, migrate the configured detection
-								if grep -q "^config detection:" ${old_conf}; then
-									current_detection="`grep "^config detection:" ${old_conf}`"
+								if grep -q "^ *config detection:" ${old_conf}; then
+									current_detection="`grep "^ *config detection:" ${old_conf}`"
 									sed -i -e 's%^config detection:.*$%'${current_detection}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config detection:"
 								fi
 
 								# If defined, migrate the configured event_queue
-								if grep -q "^config event_queue:" ${old_conf}; then
-									current_event="`grep "^config event_queue:" ${old_conf}`"
+								if grep -q "^ *config event_queue:" ${old_conf}; then
+									current_event="`grep "^ *config event_queue:" ${old_conf}`"
 									sed -i -e 's%^config event_queue:.*$%'${current_event}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config event_queue:"
 								fi
 
 								# If defined, migrate the configured normalize settings
-								if grep -q "^config normalize_ip4" ${old_conf}; then
-									current_nip4="`grep "^config normalize_ip4" ${old_conf}`"
+								if grep -q "^ *config normalize_ip4" ${old_conf}; then
+									current_nip4="`grep "^ *config normalize_ip4" ${old_conf}`"
 									sed -i -e 's%^config normalize_ip4.*$%'${current_nip4}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_ip4"
 								fi
-								if grep -q "^config normalize_tcp" ${old_conf}; then
-									current_ntcp="`grep "^config normalize_tcp" ${old_conf}`"
+								if grep -q "^ *config normalize_tcp" ${old_conf}; then
+									current_ntcp="`grep "^ *config normalize_tcp" ${old_conf}`"
 									sed -i -e 's%^config normalize_tcp.*$%'${current_ntcp}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_tcp"
 								fi
-								if grep -q "^config normalize_icmp4" ${old_conf}; then
-									current_nicmp4="`grep "^config normalize_icmp4" ${old_conf}`"
+								if grep -q "^ *config normalize_icmp4" ${old_conf}; then
+									current_nicmp4="`grep "^ *config normalize_icmp4" ${old_conf}`"
 									sed -i -e 's%^config normalize_icmp4.*$%'${current_nicmp4}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_icmp4"
 								fi
-								if grep -q "^config normalize_ip6" ${old_conf}; then
-									current_nip6="`grep "^config normalize_ip6" ${old_conf}`"
+								if grep -q "^ *config normalize_ip6" ${old_conf}; then
+									current_nip6="`grep "^ *config normalize_ip6" ${old_conf}`"
 									sed -i -e 's%^config normalize_ip6.*$%'${current_nip6}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_ip6"
 								fi
-								if grep -q "^config normalize_icmp6" ${old_conf}; then
-									current_nicmp6="`grep "^config normalize_icmp6" ${old_conf}`"
+								if grep -q "^ *config normalize_icmp6" ${old_conf}; then
+									current_nicmp6="`grep "^ *config normalize_icmp6" ${old_conf}`"
 									sed -i -e 's%^config normalize_icmp6.*$%'${current_nicmp4}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_icmp6"
 								fi
 
 								# Migrate some of the simple ipvar/portvar settings
-								if grep -q "^ipvar HOME_NET" ${old_conf}; then
-									current_home="`grep "^ipvar HOME_NET" ${old_conf}`"
+								if grep -q "^ *ipvar HOME_NET" ${old_conf}; then
+									current_home="`grep "^ *ipvar HOME_NET" ${old_conf}`"
 									sed -i -e 's%^ipvar HOME_NET.*$%'${current_home}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config HOME_NET"
 								fi
-								if grep -q "^ipvar EXTERNAL_NET" ${old_conf}; then
-									current_external="`grep "^ipvar EXTERNAL_NET" ${old_conf}`"
+								if grep -q "^ *ipvar EXTERNAL_NET" ${old_conf}; then
+									current_external="`grep "^ *ipvar EXTERNAL_NET" ${old_conf}`"
 									sed -i -e 's%^ipvar EXTERNAL_NET.*$%'${current_external}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config EXTERNAL_NET"
 								fi
-								if grep -q "^ipvar DNS_SERVERS" ${old_conf}; then
-									current_dns="`grep "^ipvar DNS_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar DNS_SERVERS" ${old_conf}; then
+									current_dns="`grep "^ *ipvar DNS_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar DNS_SERVERS.*$%'${current_dns}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config DNS_SERVERS"
 								fi
-								if grep -q "^ipvar SMTP_SERVERS" ${old_conf}; then
-									current_smtp="`grep "^ipvar SMTP_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar SMTP_SERVERS" ${old_conf}; then
+									current_smtp="`grep "^ *ipvar SMTP_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar SMTP_SERVERS.*$%'${current_smtp}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SMTP_SERVERS"
 								fi
-								if grep -q "^ipvar HTTP_SERVERS" ${old_conf}; then
-									current_http="`grep "^ipvar HTTP_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar HTTP_SERVERS" ${old_conf}; then
+									current_http="`grep "^ *ipvar HTTP_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar HTTP_SERVERS.*$%'${current_http}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config HTTP_SERVERS"
 								fi
-								if grep -q "^ipvar SQL_SERVERS" ${old_conf}; then
-									current_sql="`grep "^ipvar SQL_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar SQL_SERVERS" ${old_conf}; then
+									current_sql="`grep "^ *ipvar SQL_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar SQL_SERVERS.*$%'${current_sql}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SQL_SERVERS"
 								fi
-								if grep -q "^ipvar TELNET_SERVERS" ${old_conf}; then
-									current_telnet="`grep "^ipvar TELNET_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar TELNET_SERVERS" ${old_conf}; then
+									current_telnet="`grep "^ *ipvar TELNET_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar TELNET_SERVERS.*$%'${current_telnet}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config TELNET_SERVERS"
 								fi
-								if grep -q "^ipvar SSH_SERVERS" ${old_conf}; then
-									current_ssh="`grep "^ipvar SSH_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar SSH_SERVERS" ${old_conf}; then
+									current_ssh="`grep "^ *ipvar SSH_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar SSH_SERVERS.*$%'${current_ssh}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SSH_SERVERS"
 								fi
-								if grep -q "^ipvar FTP_SERVERS" ${old_conf}; then
-									current_ftp="`grep "^ipvar FTP_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar FTP_SERVERS" ${old_conf}; then
+									current_ftp="`grep "^ *ipvar FTP_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar FTP_SERVERS.*$%'${current_ftp}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config FTP_SERVERS"
 								fi
-								if grep -q "^ipvar SIP_SERVERS" ${old_conf}; then
-									current_sip="`grep "^ipvar SIP_SERVERS" ${old_conf}`"
+								if grep -q "^ *ipvar SIP_SERVERS" ${old_conf}; then
+									current_sip="`grep "^ *ipvar SIP_SERVERS" ${old_conf}`"
 									sed -i -e 's%^ipvar SIP_SERVERS.*$%'${current_sip}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SIP_SERVERS"
 								fi

@@ -63,6 +63,14 @@ src_prepare() {
 
 src_configure() {
 
+	local myconf
+
+	if use amd64; then
+		myconf="--enable-large-pcap"
+	else
+		myconf="--disable-large-pcap"
+	fi
+
 	econf \
 		$(use_enable !static shared) \
 		$(use_enable static) \
@@ -100,8 +108,8 @@ src_configure() {
 		--disable-ppm-test \
 		--disable-intel-soft-cpm \
 		--disable-static-daq \
-		--without-oracle
-
+		--without-oracle \
+		${myconf}
 }
 
 src_install() {
@@ -248,10 +256,10 @@ pkg_config() {
 
 			echo
 			echo "Please enter a name for this instance."
-			echo "Format: The name must be alpha-numeric and less than 10 characters in length."
+			echo "Format: The name must be alpha-numeric and no more than 8 characters in length."
 			read -p "Name: " c_name
 			echo
-			read -p "Will this be a passive or inline instance (passive/inline)" c_listen
+			read -p "Will this be a passive or inline instance, all lower case (passive/inline)" c_listen
 			echo
 			echo "Which interface(s) will Snort be listening on?"
 			echo "For a passive deployment, enter a single NIC (ex. eth1)"
@@ -314,9 +322,11 @@ pkg_config() {
 			sed -i -e 's:/usr/local/lib/snort_dynamicrules:/usr/'$(get_libdir)'/snort_dynamicrules:g' \
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf dynamicrules"
 
-			# Disable normalization. Does nothing in passive mode
+			# Normalization setup. Requires inline.
+			if [ ${c_listen} != inline || ! use normalizer ]; then
 			sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
 				"${ROOT}etc/snort/${c_name}/snort.conf" || die "Failed to update snort.conf normalization"
+			fi
 
 			# Disable the text based rules. They are not shipped with the tarball.
 			sed -i -e 's:^include $RULE_PATH/:# include $RULE_PATH/:g' \
@@ -348,8 +358,8 @@ pkg_config() {
 			echo "Warning:"
 			echo
 			echo "This process is for updating exsiting snort-2.9.1 or newer instances."
-			echo "If you are attempting to migrate an older version of snort to snort-2.9.1"
-			echo "or newer you should press Ctrl+C now and re-run 'emerge --config snort'"
+			echo "If you are attempting to migrate an older version of snort to >=snort-2.9.1"
+			echo "you should press Ctrl+C now and re-run 'emerge --config snort'"
 			echo "and follow the three step migration process listed on the first screen."
 			echo
 			echo "Press ENTER to continue or press Ctrl+C to exit."
@@ -363,9 +373,6 @@ pkg_config() {
 			echo "unicode.map"
 			echo
 			echo "The following snort instances are currently installed:"
-			echo
-			ls -1 ${ROOT}/etc/snort
-			echo
 			echo
 			read -p "Please enter the instance name you wish to update (case sensitive): " u_name
 
@@ -389,7 +396,9 @@ pkg_config() {
 				echo "If you chose to continue, your current snort.conf for the snort instance ${u_name}"
 				echo "will be backed up to snort.conf.<unix time stamp> and a new snort.conf, with the"
 				echo "required Gentoo changes, will be added to /etc/snort/${u_name}."
-				echo "You can then manually migrate your customizations to the new snort.conf."
+				echo
+				echo "This process will migrate many (but not all) of your custom settings in your"
+				echo "current config file to the new config file."
 				echo
 				echo "Would you like to continue with the snort.conf update?"
 
@@ -397,18 +406,17 @@ pkg_config() {
 		        	case ${yn} in
 						Continue )
 
-
-							local current_daq="`grep "^config daq:"`"
-							local curent_daq_mode="`grep "^config daq_mode:"`"
+							old_conf="snort.conf.`date +%s`"
 
 							echo "Backing up /etc/snort/${u_name}/snort.conf..."
 
 							if [ -e ${ROOT}/etc/snort/${u_name}/snort.conf ]; then
 
-								mv ${ROOT}/etc/snort/${u_name}/snort.conf /etc/snort/${u_name}/snort.conf.`date +%s`
+								mv ${ROOT}/etc/snort/${u_name}/snort.conf /etc/snort/${u_name}/${old_conf}
 								cp ${ROOT}/usr/share/snort/default/snort.conf /etc/snort/${u_name}
 								chown snort:snort ${ROOT}/etc/snort/${u_name}/snort.conf
 
+			# Standard Changes
 								# Set the correct rule location in the config
 								sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/'${u_name}'/rules:g' \
 									"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf rule path"
@@ -421,27 +429,9 @@ pkg_config() {
 								sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/'${u_name}'/preproc_rules:g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf preproc rule path"
 
-								# Set the configured DAQ
-								sed -i -e 's/^# config daq:<type>/'${current_daq}'/g' \
-									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq"
-
 								# Set the location of the DAQ modules
 								sed -i -e 's%^# config daq_dir: <dir>%config daq_dir: /usr/'$(get_libdir)'/daq%g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq_dir"
-
-								# Set the DAQ mode
-								sed -i -e 's%^# config daq_mode: <mode>%'${current_daq_mode}'%g' \
-									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config daq_mode"
-
-								# Set snort to run as snort:snort
-								sed -i -e 's%^# config set_gid:%config set_gid: snort%g' \
-									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config set_gid"
-								sed -i -e 's%^# config set_uid:%config set_uid: snort%g' \
-									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config set_uid"
-
-								# Set the default log dir
-								sed -i -e 's%^# config logdir:%config logdir: /var/log/snort/'${u_name}'%g' \
-									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config logdir"
 
 								# Set the correct lib path for dynamicpreprocessor, dynamicengine, and dynamicdetection
 								sed -i -e 's:/usr/local/lib/snort_dynamicpreprocessor/:/usr/'$(get_libdir)'/snort_dynamicpreprocessor:g' \
@@ -451,33 +441,213 @@ pkg_config() {
 								sed -i -e 's:/usr/local/lib/snort_dynamicrules:/usr/'$(get_libdir)'/snort_dynamicrules:g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf dynamicrules"
 
-								# Disable normalization. Does nothing in passive mode
-								sed -i -e 's:^preprocessor normalize_:# preprocessor normalize_:g' \
-									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf normalization"
+								# Set the default log dir
+								sed -i -e 's%^# config logdir:%config logdir: /var/log/snort/'${u_name}'%g' \
+									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to update snort.conf config logdir"
 
 								# Disable the text based rules. They are not shipped with the tarball.
 								sed -i -e 's:^include $RULE_PATH/:# include $RULE_PATH/:g' \
 									"${ROOT}etc/snort/${u_name}/snort.conf" || die "Failed to disable text rules"
 
+			# Migrated Changes
+								# If defined, migrate the configured DAQ
+								if grep -q "^config daq:" ${old_conf}; then
+									current_daq="`grep "^config daq:" ${old_conf}`"
+									sed -i -e 's%^# config daq:.*$%'${current_daq}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config daq:"
+								fi
+
+								# If defined, migrate the DAQ mode
+								if grep -q "^config daq_mode:" ${old_conf}; then
+									curent_daq_mode="`grep "^config daq_mode:" ${old_conf}`"
+									sed -i -e 's%^# config daq_mode:.*$%'${curent_daq_mode}'%g' \
+										 "${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config daq_mode:"
+								fi
+
+								# If defined, migrate the DAQ mode
+								if grep -q "^config daq_var:" ${old_conf}; then
+									curent_daq_var="`grep "^config daq_var:" ${old_conf}`"
+									sed -i -e 's%^# config daq_var:.*$%'${curent_daq_var}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config daq_var:"
+								fi
+
+								# If defined, migrate the configured gid/uid
+								if grep -q "^config set_gid:" ${old_conf}; then
+									current_gid="`grep "^config set_gid:" ${old_conf}`"
+									sed -i -e 's%^# config set_gid:.*$%'${current_gid}'%g' \
+										 "${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config set_gid:"
+								fi
+								if grep -q "^config set_uid:" ${old_conf}; then
+									current_uid="`grep "^config set_uid:" ${old_conf}`"
+									sed -i -e 's%^# config set_uid:.*$%'${current_uid}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config set_uid:"
+								fi
+
+								# If defined, migrate the configured snaplen
+								if grep -q "^config snaplen:" ${old_conf}; then
+									current_snaplen="`grep "^config snaplen:" ${old_conf}`"
+									sed -i -e 's%^# config snaplen:.*$%'${current_snaplen}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config snaplen:"
+								fi
+
+								# If defined, migrate the configured pcre options
+								if grep -q "^config pcre_match_limit:" ${old_conf}; then
+									current_pcreml="`grep "^config pcre_match_limit:" ${old_conf}`"
+									sed -i -e 's%^# config pcre_match_limit:.*$%'${current_pcreml}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config pcre_match_limit:"
+								fi
+								if grep -q "^config pcre_match_limit_recursion:" ${old_conf}; then
+									current_pcremlr="`grep "^config pcre_match_limit_recursion:" ${old_conf}`"
+									sed -i -e 's%^# config pcre_match_limit_recursion:.*$%'${current_pcremlr}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config pcre_match_limit_recursion:"
+								fi
+
+								# If defined, migrate the configured checksum_mode
+								if grep -q "^config checksum_mode:" ${old_conf}; then
+									current_checksum="`grep "^config checksum_mode:" ${old_conf}`"
+									sed -i -e 's%^config checksum_mode:.*$%'${current_checksum}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config checksum_mode:"
+								fi
+
+								# If defined, migrate the configured response
+								if grep -q "^config response:" ${old_conf}; then
+									current_response="`grep "^config response:" ${old_conf}`"
+									sed -i -e 's%^# config response:.*$%'${current_response}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config response:"
+								fi
+
+								# If defined, migrate the configured BPF
+								if grep -q "^config bpf_file:" ${old_conf}; then
+									current_bpf="`grep "^config bpf_file:" ${old_conf}`"
+									sed -i -e 's%^# config bpf_file:.*$%'${current_bpf}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config bpf_file:"
+								fi
+
+								# If defined, migrate the configured detection
+								if grep -q "^config detection:" ${old_conf}; then
+									current_detection="`grep "^config detection:" ${old_conf}`"
+									sed -i -e 's%^config detection:.*$%'${current_detection}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config detection:"
+								fi
+
+								# If defined, migrate the configured event_queue
+								if grep -q "^config event_queue:" ${old_conf}; then
+									current_event="`grep "^config event_queue:" ${old_conf}`"
+									sed -i -e 's%^config event_queue:.*$%'${current_event}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config event_queue:"
+								fi
+
+								# If defined, migrate the configured normalize settings
+								if grep -q "^config normalize_ip4" ${old_conf}; then
+									current_nip4="`grep "^config normalize_ip4" ${old_conf}`"
+									sed -i -e 's%^config normalize_ip4.*$%'${current_nip4}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_ip4"
+								fi
+								if grep -q "^config normalize_tcp" ${old_conf}; then
+									current_ntcp="`grep "^config normalize_tcp" ${old_conf}`"
+									sed -i -e 's%^config normalize_tcp.*$%'${current_ntcp}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_tcp"
+								fi
+								if grep -q "^config normalize_icmp4" ${old_conf}; then
+									current_nicmp4="`grep "^config normalize_icmp4" ${old_conf}`"
+									sed -i -e 's%^config normalize_icmp4.*$%'${current_nicmp4}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_icmp4"
+								fi
+								if grep -q "^config normalize_ip6" ${old_conf}; then
+									current_nip6="`grep "^config normalize_ip6" ${old_conf}`"
+									sed -i -e 's%^config normalize_ip6.*$%'${current_nip6}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_ip6"
+								fi
+								if grep -q "^config normalize_icmp6" ${old_conf}; then
+									current_nicmp6="`grep "^config normalize_icmp6" ${old_conf}`"
+									sed -i -e 's%^config normalize_icmp6.*$%'${current_nicmp4}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config normalize_icmp6"
+								fi
+
+								# Migrate some of the simple ipvar/portvar settings
+								if grep -q "^ipvar HOME_NET" ${old_conf}; then
+									current_home="`grep "^ipvar HOME_NET" ${old_conf}`"
+									sed -i -e 's%^ipvar HOME_NET.*$%'${current_home}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config HOME_NET"
+								fi
+								if grep -q "^ipvar EXTERNAL_NET" ${old_conf}; then
+									current_external="`grep "^ipvar EXTERNAL_NET" ${old_conf}`"
+									sed -i -e 's%^ipvar EXTERNAL_NET.*$%'${current_external}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config EXTERNAL_NET"
+								fi
+								if grep -q "^ipvar DNS_SERVERS" ${old_conf}; then
+									current_dns="`grep "^ipvar DNS_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar DNS_SERVERS.*$%'${current_dns}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config DNS_SERVERS"
+								fi
+								if grep -q "^ipvar SMTP_SERVERS" ${old_conf}; then
+									current_smtp="`grep "^ipvar SMTP_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar SMTP_SERVERS.*$%'${current_smtp}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SMTP_SERVERS"
+								fi
+								if grep -q "^ipvar HTTP_SERVERS" ${old_conf}; then
+									current_http="`grep "^ipvar HTTP_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar HTTP_SERVERS.*$%'${current_http}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config HTTP_SERVERS"
+								fi
+								if grep -q "^ipvar SQL_SERVERS" ${old_conf}; then
+									current_sql="`grep "^ipvar SQL_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar SQL_SERVERS.*$%'${current_sql}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SQL_SERVERS"
+								fi
+								if grep -q "^ipvar TELNET_SERVERS" ${old_conf}; then
+									current_telnet="`grep "^ipvar TELNET_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar TELNET_SERVERS.*$%'${current_telnet}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config TELNET_SERVERS"
+								fi
+								if grep -q "^ipvar SSH_SERVERS" ${old_conf}; then
+									current_ssh="`grep "^ipvar SSH_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar SSH_SERVERS.*$%'${current_ssh}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SSH_SERVERS"
+								fi
+								if grep -q "^ipvar FTP_SERVERS" ${old_conf}; then
+									current_ftp="`grep "^ipvar FTP_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar FTP_SERVERS.*$%'${current_ftp}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config FTP_SERVERS"
+								fi
+								if grep -q "^ipvar SIP_SERVERS" ${old_conf}; then
+									current_sip="`grep "^ipvar SIP_SERVERS" ${old_conf}`"
+									sed -i -e 's%^ipvar SIP_SERVERS.*$%'${current_sip}'%g' \
+										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config SIP_SERVERS"
+								fi
+
 								clear
 								echo "Finished!"
 								echo
-								echo "Your exsisting snort.conf has been backed up and a new one installed into /etc/snort/${u_name}."
+								echo "Your exsisting snort.conf has been backed up to ${old_conf} and a new one"
+								echo "installed into /etc/snort/${u_name}."
 								echo
-								echo "The following additional config options were migrated from your prievious config file:"
+								echo "The following options have been migrated for you:"
 								echo
-								echo "${current_daq}"
-								echo "config daq_dir: /usr/$(get_libdir)/daq"
-								echo "${current_daq_mode}"
-								echo "config logdir: /var/log/snort/${u_name}"
+								echo "config options		ipvar options"
+								echo "-----------------------------------"
+								echo "daq					HOME_NET"
+								echo "daq_mode				EXTERNAL_NET"
+								echo "daq_var				DNS_SERVERS"
+								echo "set_gid				SMTP_SERVERS"
+								echo "set_uid				HTTP_SERVERS"
+								echo "snaplen				SQL_SERVERS"
+								echo "checksum_mode			TELNET_SERVERS"
+								echo "response				SSH_SERVERS"
+								echo "bpf_file				FTP_SERVERS"
+								echo "detection				SIP_SERVERS"
+								echo "event_queue"
+								echo "normalize_ip4"
+								echo "normalize_tcp"
+								echo "normalize_icmp4"
+								echo "normalize_ip6"
+								echo "normalize_icmp6"
+								echo "pcre_match_limit"
+								echo "pcre_match_limit_recursion"
 								echo
-								echo "Note:"
-								echo "By default, this update process sets snort to run as snort:snort"
-								echo "and disables the normalization preprocessor. If you need to run"
-								echo "Snort as root or need inline normalization, make sure you change"
-								echo "these settings in the new snort.conf."
 								echo
-								echo "Please manually migrate your other customizations to the new snort.conf."
+								echo "Please review the above options to ensure they were migrated properly"
+								echo "and then manually migrate your other customizations to the new snort.conf."
 								echo
 								echo "Thank you, and happy snorting!"
 								return

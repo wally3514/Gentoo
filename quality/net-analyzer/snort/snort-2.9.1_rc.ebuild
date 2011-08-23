@@ -47,12 +47,12 @@ src_prepare() {
 
 	#Multilib fix for the sf_engine
 	einfo "Applying multilib fix."
-	sed -i -e "s|${exec_prefix}/lib|${exec_prefix}/'$(get_libdir)'|g" \
+	sed -i -e "s|${exec_prefix}/lib|${exec_prefix}/$(get_libdir)|g" \
 		"${WORKDIR}/${P}/src/dynamic-plugins/sf_engine/Makefile.am" || die "sed for sf_engine failed"
 
 	#Multilib fix for the curent set of dynamic-preprocessors
 	for i in ftptelnet smtp ssh dns ssl dcerpc2 sdf imap pop rzb_saac sip; do
-		sed -i -e "s|${exec_prefix}/lib|${exec_prefix}/'$(get_libdir)'|g" \
+		sed -i -e "s|${exec_prefix}/lib|${exec_prefix}/$(get_libdir)|g" \
 			"${WORKDIR}/${P}/src/dynamic-preprocessors/$i/Makefile.am" || die "sed for $i failed."
 	done
 

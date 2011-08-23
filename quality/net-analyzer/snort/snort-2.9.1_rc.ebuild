@@ -451,7 +451,7 @@ pkg_config() {
 
 			# Migrated Changes
 								# If defined, migrate the configured DAQ
-								if grep -q "^ *config daq:" ${old_conf}; then
+								if [ `grep -q "^ *config daq:" ${old_conf}` == 0 ]; then
 									current_daq="`grep "^ *config daq:" ${old_conf}`"
 									sed -i -e 's%^# config daq:.*$%'${current_daq}'%g' \
 										"${ROOT}/etc/snort/${u_name}/snort.conf" || die "Failed to migrate config daq:"

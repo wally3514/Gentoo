@@ -7,7 +7,7 @@ inherit eutils autotools multilib
 
 DESCRIPTION="The de facto standard for intrusion detection/prevention"
 HOMEPAGE="http://www.snort.org/"
-SRC_URI="http://www.snort.org/downloads/1056 -> ${P}.tar.gz"
+SRC_URI="http://www.snort.org/downloads/1107 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
@@ -406,11 +406,15 @@ pkg_config() {
 
 							old_conf="${ROOT}etc/snort/${u_name}/snort.conf.`date +%s`"
 
-							echo "Backing up /etc/snort/${u_name}/snort.conf..."
-
 							if [ -e ${ROOT}etc/snort/${u_name}/snort.conf ]; then
 
 								mv ${ROOT}etc/snort/${u_name}/snort.conf ${old_conf}
+								if [ ! -e ${old_conf} ]; then
+									echo "Aborting: Backup of original config file failed."
+									echo "          This should not happen. Please file a bug"
+									echo "          at http://bugs.gentoo.org."
+									exit
+								fi
 								cp ${ROOT}usr/share/snort/default/snort.conf /etc/snort/${u_name}
 								chown snort:snort ${ROOT}etc/snort/${u_name}/snort.conf
 

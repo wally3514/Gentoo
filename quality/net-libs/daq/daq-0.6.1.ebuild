@@ -4,14 +4,14 @@
 
 EAPI="2"
 
-inherit eutils multilib autotools
+inherit eutils multilib
 
 DESCRIPTION="Data Acquisition library, for packet I/O"
 HOMEPAGE="http://www.snort.org/"
-SRC_URI="http://www.snort.org/downloads/630 -> ${P}.tar.gz"
+SRC_URI="http://www.snort.org/downloads/1098 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="amd64 ~x86"
+KEYWORDS="~amd64 ~x86"
 IUSE="ipv6 +afpacket +dump +pcap nfq ipq static-libs"
 
 DEPEND="pcap? ( >=net-libs/libpcap-1.0.0 )
@@ -24,16 +24,6 @@ DEPEND="pcap? ( >=net-libs/libpcap-1.0.0 )
 			net-libs/libnetfilter_queue )"
 
 RDEPEND="${DEPEND}"
-
-src_prepare() {
-	einfo "Applying PCAP buffer size fix."
-	if use pcap; then
-		sed -i -e 's:strtol(entry->key:strtol(entry->value:g' \
-			"${WORKDIR}/${P}/os-daq-modules/daq_pcap.c"	\
-			|| die "PCAP buffer size fix failed"
-	fi
-	eautoreconf
-}
 
 src_configure() {
 	econf \
@@ -49,7 +39,7 @@ src_configure() {
 }
 
 src_install() {
-	emake -j1 DESTDIR="${D}" install || die "make install failed"
+	emake DESTDIR="${D}" install || die "make install failed"
 	dodoc ChangeLog README
 	for x in pcap afpacket dump nfq ipq; do
 		if use $x; then
@@ -60,18 +50,11 @@ src_install() {
 }
 
 pkg_postinst() {
-	elog "The Data Acquisition library (DAQ) for packet I/O replaces direct"
-	elog "calls to PCAP functions with an abstraction layer that facilitates"
-	elog "operation on a variety of hardware and software interfaces without"
-	elog "requiring changes to application such as Snort."
-	elog
-	elog "The only DAQ modules supported with this ebuild are AFpacket, PCAP,"
-	elog "and Dump. IPQ and NFQ will be supported in future versions of this"
-	elog "package."
+	einfo "The Data Acquisition library (DAQ) for packet I/O replaces direct"
+	einfo "calls to PCAP functions with an abstraction layer that facilitates"
+	einfo "operation on a variety of hardware and software interfaces without"
+	einfo "requiring changes to application such as Snort."
 	elog
 	elog "Please see the README file for DAQ for information about specific"
 	elog "DAQ modules."
-	ewarn
-	ewarn "If you are reinstalling this package, you should also reinstall"
-	ewarn "packages that use this library for packet capture."
 }

@@ -212,11 +212,6 @@ src_install() {
 		"${D}etc/snort/snort.conf.distrib" \
 		|| die "Failed to disable rules in snort.conf.distrib"
 
-	# Disable preproc rule files by default.
-	sed -i -e 's:^include $PREPROC_RULE_PATH:# include $PREPROC_RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to disable rules in snort.conf.distrib"
-
 	# Disable normalizer preprocessor config if normalizer USE flag not set.
 	if ! use normalizer; then
 		sed -i -e 's:^preprocessor normalize:#preprocessor normalize:g' \

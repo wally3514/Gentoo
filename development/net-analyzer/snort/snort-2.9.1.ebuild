@@ -207,7 +207,7 @@ src_install() {
 		"${D}etc/snort/snort.conf.distrib" \
 		|| die "Failed to update snort.conf.distrib /etc/snort/reference.config path"
 
-	# Disable all rule files by default. Users need to choose what they want enabled.
+	# Disable all rule files by default. 
 	sed -i -e 's:^include $RULE_PATH:# include $RULE_PATH:g' \
 		"${D}etc/snort/snort.conf.distrib" \
 		|| die "Failed to disable rules in snort.conf.distrib"
@@ -227,53 +227,15 @@ src_install() {
 }
 
 pkg_postinst() {
-	elog
-	elog "Snort-2.9 introduces the DAQ, or Data Acquisition library, for"
-	elog "packet I/O. The DAQ replaces direct calls to PCAP functions with"
-	elog "an abstraction layer that	facilitates operation on a variety of"
-	elog "hardware and software interfaces without requiring changes to Snort."
-	elog
-	elog "The only DAQ modules supported with this ebuild are AFpacket, PCAP,"
-	elog "and Dump. IPQ nad NFQ will be supported in future versions of this"
-	elog "package."
-	elog
-	elog "For passive (non-inline) Snort deployments you will want to use"
-	elog "either PCAP or AFpacket. For inline deployments you will need"
-	elog "to use AFpacket. The Dump DAQ is used for testing the various inline"
-	elog "features available in ${P}."
-	elog
-	elog "The core DQA libraries are installed in /usr/$(get_libdir)/. The libraries"
-	elog "for the individual DAQ modules (afpacket,pcap,dump) are installed in"
-	elog "/usr/$(get_libdir)/daq. To use these you will need to add the following"
-	elog "lines to your snort.conf:"
-	elog
-	elog "config daq: <DAQ module>"
-	elog "config daq_mode: <mode>"
-	elog "config daq_dir: /usr/$(get_libdir)/daq"
-	elog
-	elog "Please see the README file for DAQ for information about specific"
-	elog "DAQ modules and README.daq from the Snort 2.9 documentation"
-	elog "reguarding Snort and DAQ configuration information."
-	elog
-	elog "See /usr/share/doc/${PF} and /etc/snort/snort.conf.distrib for"
-	elog "information on configuring snort."
-	elog
 
-	if [[ $(date +%Y%m%d) < 20110507 ]]; then
-		ewarn
-		ewarn "Please note, you can not use ${P} with the SO rules from"
-		ewarn "previous versions of Snort!"
-		ewarn
-		ewarn "If you do not have a subscription to the VRT rule set and you"
-		ewarn "wish to continue using the shared object (SO) rules, you will"
-		ewarn "need to downgrade Snort. The SO rules will be made available"
-		ewarn "to registered (non-subscription) users on May 7, 2011"
-		ewarn "(30 days after being released to subscription users)."
-		ewarn
-		ewarn "Please see http://www.snort.org/snort-rules/#rules for more"
-		ewarn "details."
-		ewarn
-	fi
+	einfo "There have been a number of improvements and new features"
+	einfo "added to ${P}. Please review the RELEASE.NOTES and"
+	einfo "ChangLog located in /usr/share/doc/${PF}."
+	einfo
+	elog "The Sourcefire Vulnerability Research Team (VRT) recommends that"
+	elog "users migrate their snort.conf customizations to the latest config"
+	elog "file released by the VRT. You can find the latest version of the"
+	elog "Snort config file in /etc/snort/snort.conf.distrib."
 
 	if use debug; then
 		elog "You have the 'debug' USE flag enabled. If this has been done to"

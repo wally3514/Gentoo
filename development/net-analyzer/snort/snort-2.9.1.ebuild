@@ -161,8 +161,8 @@ src_install() {
 		"${D}"/etc/snort \
 		"${D}"/etc/snort/preproc_rules || die "Failed to set ownership of dirs"
 
-	newinitd "${FILESDIR}/snort.rc10" snort || die "Failed to install snort init script"
-	newconfd "${FILESDIR}/snort.confd" snort || die "Failed to install snort confd file"
+	newinitd "${FILESDIR}/snort.rc11" snort || die "Failed to install snort init script"
+	newconfd "${FILESDIR}/snort.confd.2" snort || die "Failed to install snort confd file"
 
 	# Sourcefire uses Makefiles to install docs causing Bug #297190.
 	# This removes the unwanted doc directory and rogue Makefiles.

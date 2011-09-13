@@ -139,6 +139,17 @@ src_install() {
 	newins etc/snort.conf snort.conf.distrib \
 		|| die "Failed to add snort.conf.distrib"
 
+	# config.log and build.log are needed by Sourcefire
+	# to troubleshoot build problems and bug reports so we are
+	# perserving them incase the user needs upstream support.
+	# 'die' was intentionally not added here.
+	if [ -f "${WORKDIR}/${PF}/config.log" ]; then
+		dodoc "${WORKDIR}/${PF}/config.log"
+	fi
+	if [ -f "${T}/build.log" ]; then
+		dodoc "${T}/build.log"
+	fi
+
 	insinto /etc/snort/preproc_rules
 	doins preproc_rules/decoder.rules \
 		preproc_rules/preprocessor.rules \

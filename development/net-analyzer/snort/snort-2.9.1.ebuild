@@ -213,6 +213,24 @@ src_install() {
 	sed -i -e 's|^# config daq: <type>|config daq: afpacket|g' \
 		"${D}etc/snort/snort.conf.distrib" || die
 
+	# Set the location of the DAQ modules
+	sed -i -e 's|^# config daq_dir: <dir>|config daq_dir: /usr/'$(get_libdir)'/daq|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
+
+	# Set the DAQ mode to passive
+	sed -i -e 's|^# config daq_mode: <mode>|config daq_mode: passive|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
+
+	# Set snort to run as snort:snort
+	sed -i -e 's|^# config set_gid:|config set_gid: snort|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
+	sed -i -e 's|^# config set_uid:|config set_uid: snort|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
+
+	# Set the default log dir
+	sed -i -e 's|^# config logdir:|config logdir: /var/log/snort/|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
+
 }
 
 pkg_postinst() {
@@ -225,6 +243,12 @@ pkg_postinst() {
 	elog "users migrate their snort.conf customizations to the latest config"
 	elog "file released by the VRT. You can find the latest version of the"
 	elog "Snort config file in /etc/snort/snort.conf.distrib."
+	elog
+	elog "!! It is important that you migrate to this new snort.conf file !!"
+	elog
+	elog "This version of the ebuild includes an updated init.d file and"
+	elog "conf.d file that rely on options found in the latest Snort"
+	elog "config file provided by the VRT."
 
 	if use debug; then
 		elog "You have the 'debug' USE flag enabled. If this has been done to"

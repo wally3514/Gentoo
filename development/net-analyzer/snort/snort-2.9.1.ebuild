@@ -48,13 +48,13 @@ src_prepare() {
 
 	#Multilib fix for the sf_engine
 	einfo "Applying multilib fix."
-	sed -i -e 's:${exec_prefix}/lib:${exec_prefix}/'$(get_libdir)':g' \
+	sed -i -e 's|${exec_prefix}/lib|${exec_prefix}/'$(get_libdir)'|g' \
 		"${WORKDIR}/${P}/src/dynamic-plugins/sf_engine/Makefile.am" \
 		|| die "sed for sf_engine failed"
 
 	#Multilib fix for the curent set of dynamic-preprocessors
 	for i in ftptelnet smtp ssh dns ssl dcerpc2 sdf imap pop rzb_saac sip; do
-		sed -i -e 's:${exec_prefix}/lib:${exec_prefix}/'$(get_libdir)':g' \
+		sed -i -e 's|${exec_prefix}/lib|${exec_prefix}/'$(get_libdir)'|g' \
 			"${WORKDIR}/${P}/src/dynamic-preprocessors/$i/Makefile.am" \
 			|| die "sed for $i failed."
 	done
@@ -170,54 +170,48 @@ src_install() {
 	rm "${D}"usr/share/doc/"${PF}"/Makefile* || die "Failed to remove doc make files"
 
 	# Set the correct lib path for dynamicengine, dynamicpreprocessor, and dynamicdetection
-	sed -i -e 's:/usr/local/lib:/usr/'$(get_libdir)':g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib lib paths"
+	sed -i -e 's|/usr/local/lib|/usr/'$(get_libdir)'|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 	# Set the correct rule location in the config
-	sed -i -e 's:RULE_PATH ../rules:RULE_PATH /etc/snort/rules:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib rule path"
+	sed -i -e 's|RULE_PATH ../rules|RULE_PATH /etc/snort/rules|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 	# Set the correct preprocessor/decoder rule location in the config
-	sed -i -e 's:PREPROC_RULE_PATH ../preproc_rules:PREPROC_RULE_PATH /etc/snort/preproc_rules:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib preproc rule path"
+	sed -i -e 's|PREPROC_RULE_PATH ../preproc_rules|PREPROC_RULE_PATH /etc/snort/preproc_rules|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 	# Enable the preprocessor/decoder rules
-	sed -i -e 's:^# include $PREPROC_RULE_PATH:include $PREPROC_RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to uncomment snort.conf.distrib preproc rule path"
+	sed -i -e 's|^# include $PREPROC_RULE_PATH|include $PREPROC_RULE_PATH|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
-	sed -i -e 's:^# dynamicdetection directory:dynamicdetection directory:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to uncomment snort.conf.distrib dynamicdetection directory"
+	sed -i -e 's|^# dynamicdetection directory|dynamicdetection directory|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 	# Just some clean up of trailing /'s in the config
-	sed -i -e 's:snort_dynamicpreprocessor/$:snort_dynamicpreprocessor:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to clean up snort.conf.distrib trailing slashes"
+	sed -i -e 's|snort_dynamicpreprocessor/$|snort_dynamicpreprocessor|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 	# Make it clear in the config where these are...
-	sed -i -e 's:^include classification.config:include /etc/snort/classification.config:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib classification.config path"
+	sed -i -e 's|^include classification.config|include /etc/snort/classification.config|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
-	sed -i -e 's:^include reference.config:include /etc/snort/reference.config:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to update snort.conf.distrib /etc/snort/reference.config path"
+	sed -i -e 's|^include reference.config|include /etc/snort/reference.config|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 	# Disable all rule files by default. 
-	sed -i -e 's:^include $RULE_PATH:# include $RULE_PATH:g' \
-		"${D}etc/snort/snort.conf.distrib" \
-		|| die "Failed to disable rules in snort.conf.distrib"
+	sed -i -e 's|^include $RULE_PATH|# include $RULE_PATH|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 	# Disable normalizer preprocessor config if normalizer USE flag not set.
 	if ! use normalizer; then
-		sed -i -e 's:^preprocessor normalize:#preprocessor normalize:g' \
-			"${D}etc/snort/snort.conf.distrib" \
-			|| die "Failed to disable normalizer config in snort.conf.distrib"
+		sed -i -e 's|^preprocessor normalize|#preprocessor normalize|g' \
+			"${D}etc/snort/snort.conf.distrib" || die
 	fi
+
+	# Set the configured DAQ to afpacket
+	sed -i -e 's|^# config daq: <type>|config daq: afpacket|g' \
+		"${D}etc/snort/snort.conf.distrib" || die
 
 }
 

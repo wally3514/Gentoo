@@ -56,7 +56,7 @@ src_prepare() {
 		|| die "sed for sf_engine failed"
 
 	#Multilib fix for the curent set of dynamic-preprocessors
-	for i in ftptelnet smtp ssh dns ssl dcerpc2 sdf; do
+	for i in ftptelnet smtp ssh dns ssl dcerpc2 sdf imap pop rzb_saac sip; do
 		sed -i -e 's:${exec_prefix}/lib:${exec_prefix}/'$(get_libdir)':g' \
 			"${WORKDIR}/${P}/src/dynamic-preprocessors/$i/Makefile.am" \
 			|| die "sed for $i failed."

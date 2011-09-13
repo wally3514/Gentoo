@@ -113,6 +113,7 @@ src_install() {
 	dodir /var/log/snort \
 		/var/run/snort \
 		/etc/snort/rules \
+		/etc/snort/so_rules \
 		/usr/$(get_libdir)/snort_dynamicrules \
 			|| die "Failed to create core directories"
 
@@ -230,6 +231,9 @@ src_install() {
 	sed -i -e 's|^# config logdir:|config logdir: /var/log/snort/|g' \
 		"${D}etc/snort/snort.conf.distrib" || die
 
+	# Set the correct so_rule location in the config
+	 sed -i -e 's|SO_RULE_PATH ../so_rules|SO_RULE_PATH /etc/snort/so_rules|g' \
+		 "${D}etc/snort/snort.conf.distrib" || die
 }
 
 pkg_postinst() {

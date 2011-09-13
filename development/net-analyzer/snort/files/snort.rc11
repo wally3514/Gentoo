@@ -24,7 +24,7 @@ start() {
 	ebegin "Starting snort"
 	start-stop-daemon --start --quiet --exec /usr/bin/snort \
 		-- --nolock-pidfile --pid-path /var/run/snort -D -i ${SNORT_IFACE} \
-		 -c /etc/snort/${SNORT_CONF} >/dev/null 2>&1
+		 -c ${SNORT_CONF} >/dev/null 2>&1
 	eend $?
 }
 
@@ -45,7 +45,7 @@ reload() {
         	eerror "Snort isn't running"
                 return 1
 	elif [ ${SNORT_USER} != root ]; then
-		eerror "Snort must be running a root for reload to work!"
+		eerror "Snort must be running as root for reload to work!"
 		return 1
 	else
 		checkconfig || return 1

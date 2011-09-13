@@ -7,7 +7,7 @@ inherit eutils autotools multilib
 
 DESCRIPTION="The de facto standard for intrusion detection/prevention"
 HOMEPAGE="http://www.snort.org/"
-SRC_URI="http://www.snort.org/downloads/867 -> ${P}.tar.gz"
+SRC_URI="http://www.snort.org/downloads/1107 -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"

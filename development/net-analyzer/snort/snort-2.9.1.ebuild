@@ -46,9 +46,6 @@ pkg_setup() {
 
 src_prepare() {
 
-	# Fix to ensure that the package builds if USE flag -dynamicplugin is used.
-#	epatch "${FILESDIR}/disabledynamic.patch"
-
 	#Multilib fix for the sf_engine
 	einfo "Applying multilib fix."
 	sed -i -e 's:${exec_prefix}/lib:${exec_prefix}/'$(get_libdir)':g' \

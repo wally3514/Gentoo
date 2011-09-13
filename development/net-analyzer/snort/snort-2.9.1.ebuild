@@ -155,11 +155,28 @@ src_install() {
 		preproc_rules/preprocessor.rules \
 		preproc_rules/sensitive-data.rules || die "Failed to install preproc rule files"
 
-	chown -R snort:snort \
-		"${D}"/var/log/snort \
-		"${D}"/var/run/snort \
-		"${D}"/etc/snort \
-		"${D}"/etc/snort/preproc_rules || die "Failed to set ownership of dirs"
+#	chown -R snort:snort \
+#		"${D}"/var/log/snort \
+#		"${D}"/var/run/snort \
+#		"${D}"/etc/snort \
+#		"${D}"/etc/snort/preproc_rules || die "Failed to set ownership of dirs"
+
+	fowners snort:snort	/etc/snort \
+		/etc/snort/snort.conf.distrib \
+		/etc/snort/attribute_table.dtd \
+		/etc/snort/classification.config \
+		/etc/snort/gen-msg.map \
+		/etc/snort/reference.config \
+		/etc/snort/threshold.conf \
+		/etc/snort/unicode.map \
+		/etc/snort/preproc_rules \
+		/etc/snort/preproc_rules/decoder.rules \
+		/etc/snort/preproc_rules/preprocessor.rules \
+		/etc/snort/preproc_rules/sensitive-data.rules \
+		/etc/snort/rules \
+		/etc/snort/so_rules \
+		/var/log/snort \
+		/var/run/snort
 
 	newinitd "${FILESDIR}/snort.rc11" snort || die "Failed to install snort init script"
 	newconfd "${FILESDIR}/snort.confd.2" snort || die "Failed to install snort confd file"

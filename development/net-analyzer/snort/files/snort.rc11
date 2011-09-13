@@ -30,7 +30,7 @@ start() {
 
 stop() {
 	ebegin "Stopping snort"
-	start-stop-daemon --stop --quiet --pidfile /var/run/snort/snort_${SNORT_IFACE}.pid
+	start-stop-daemon --quiet --pidfile /var/run/snort/snort_${SNORT_IFACE}.pid
 	# Snort needs a few seconds to fully shutdown
 	sleep 15
 	eend $?
@@ -50,7 +50,7 @@ reload() {
 	else
 		checkconfig || return 1
 		ebegin "Reloading Snort"
-		start-stop-daemon --stop --signal HUP --pidfile /var/run/snort/snort_${SNORT_IFACE}.pid
+		start-stop-daemon --signal HUP --pidfile /var/run/snort/snort_${SNORT_IFACE}.pid
         fi
 }
 

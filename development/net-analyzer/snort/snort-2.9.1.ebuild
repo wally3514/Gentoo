@@ -14,7 +14,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~ppc ~ppc64 ~sparc ~x86"
 IUSE="static +dynamicplugin +zlib +gre +mpls +targetbased +decoder-preprocessor-rules
 +ppm +perfprofiling linux-smp-stats inline-init-failopen prelude +threads debug
 +active-response +normalizer reload-error-restart +react +flexresp3 +paf
-aruba mysql odbc postgres selinux"
+large-pcap-64bit aruba mysql odbc postgres selinux"
 
 DEPEND=">=net-libs/libpcap-1.0.0
 	>=net-libs/daq-0.5
@@ -99,6 +99,7 @@ src_configure() {
 		$(use_enable react) \
 		$(use_enable flexresp3) \
 		$(use_enable paf) \
+		$(use_enable large-pcap-64bit large-pcap) \
 		$(use_enable aruba) \
 		$(use_with mysql) \
 		$(use_with odbc) \

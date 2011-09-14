@@ -57,7 +57,7 @@ src_install() {
 
 	# If not using static-libs don't install the static libraries
 	# This has been bugged upstream
-	if ! use static; then
+	if ! use static-libs; then
 		for z in libdaq_static libdaq_static_modules; do
 			rm "${D}"usr/lib64/${z}.a
 		done

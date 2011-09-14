@@ -41,12 +41,27 @@ src_configure() {
 src_install() {
 	emake DESTDIR="${D}" install || die "make install failed"
 	dodoc ChangeLog README
+#	for x in pcap afpacket dump nfq ipq; do
+#		if use $x; then
+#			echo "removing executable bit: /usr/$(get_libdir)/daq/daq_$x.la"
+#			fperms -x "/usr/$(get_libdir)/daq/daq_$x.la" || die
+#		fi
+#	done
+	# Remove unneeded .la files
 	for x in pcap afpacket dump nfq ipq; do
-		if use $x; then
-			echo "removing executable bit: /usr/$(get_libdir)/daq/daq_$x.la"
-			fperms -x "/usr/$(get_libdir)/daq/daq_$x.la" || die
-		fi
+		rm "${D}"usr/lib64/daq/daq_${x}.la
 	done
+	for y in libdaq libdaq_static libdaq_static_modules libsfbpf; do
+		rm "${D}"usr/lib64/${y}.la
+	done
+
+	# If not using static-libs don't install the static libraries
+	# This has been bugged upstream
+	if ! use static; then
+		for z in libdaq_static libdaq_static_modules; do
+			rm "${D}"usr/lib64/${z}.a
+		done
+	fi
 }
 
 pkg_postinst() {
@@ -54,7 +69,7 @@ pkg_postinst() {
 	einfo "calls to PCAP functions with an abstraction layer that facilitates"
 	einfo "operation on a variety of hardware and software interfaces without"
 	einfo "requiring changes to application such as Snort."
-	elog
-	elog "Please see the README file for DAQ for information about specific"
-	elog "DAQ modules."
+	einfo
+	einfo "Please see the README file for DAQ for information about specific"
+	einfo "DAQ modules."
 }

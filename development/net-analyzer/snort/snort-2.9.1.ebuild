@@ -66,8 +66,8 @@ src_configure() {
 	econf \
 		$(use_enable !static shared) \
 		$(use_enable static) \
+		$(use_enable static so-with-static-lib) \
 		$(use_enable dynamicplugin) \
-		$(use_enable ipv6) \
 		$(use_enable zlib) \
 		$(use_enable gre) \
 		$(use_enable mpls) \
@@ -103,7 +103,6 @@ src_configure() {
 		--disable-static-daq \
 		--disable-rzb-saac \
 		--without-oracle
-
 }
 
 src_install() {
@@ -167,6 +166,13 @@ src_install() {
 	# This removes the unwanted doc directory and rogue Makefiles.
 	rm -rf "${D}"usr/share/doc/snort || die "Failed to remove SF doc directories"
 	rm "${D}"usr/share/doc/"${PF}"/Makefile* || die "Failed to remove doc make files"
+
+	#Remove unneeded .la files (Bug #382863)
+	rm "${D}"usr/lib64/snort_dynamicengine/libsf_engine.la || die
+	for p in ftptelnet smtp ssh dns ssl dce2 sdf imap pop rzb_saac sip reputation; do
+		rm "${D}"usr/lib64/snort_dynamicpreprocessor/libsf_${p}_preproc.la \
+			|| die "Failed to remove libsf_${p}_preproc.la"
+	done
 
 	# Set the correct lib path for dynamicengine, dynamicpreprocessor, and dynamicdetection
 	sed -i -e 's|/usr/local/lib|/usr/'$(get_libdir)'|g' \

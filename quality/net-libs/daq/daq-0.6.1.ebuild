@@ -41,12 +41,7 @@ src_configure() {
 src_install() {
 	emake DESTDIR="${D}" install || die "make install failed"
 	dodoc ChangeLog README
-#	for x in pcap afpacket dump nfq ipq; do
-#		if use $x; then
-#			echo "removing executable bit: /usr/$(get_libdir)/daq/daq_$x.la"
-#			fperms -x "/usr/$(get_libdir)/daq/daq_$x.la" || die
-#		fi
-#	done
+
 	# Remove unneeded .la files
 	for x in pcap afpacket dump nfq ipq; do
 		rm "${D}"usr/lib64/daq/daq_${x}.la
